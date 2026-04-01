@@ -32,7 +32,7 @@ export function NewPrayerDialog({
   children: React.ReactNode;
 }) {
   const t = useTranslations();
-  const { isLoggedIn } = useAuth();
+  const { user, isLoggedIn } = useAuth();
   const [open, setOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -63,7 +63,7 @@ export function NewPrayerDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: text.trim(),
-          name: isAnonymous ? null : name.trim() || null,
+          name: isAnonymous ? null : (isLoggedIn && user ? user.name : name.trim() || null),
           isAnonymous,
           category,
         }),
@@ -202,12 +202,12 @@ export function NewPrayerDialog({
                     <input
                       id="prayer-name"
                       type="text"
-                      value={name}
+                      value={isLoggedIn && user ? user.name : name}
                       onChange={(e) => setName(e.target.value.slice(0, 30))}
                       placeholder={t("form.name_placeholder")}
                       maxLength={30}
-                      disabled={isAnonymous}
-                      aria-disabled={isAnonymous}
+                      disabled={isAnonymous || (isLoggedIn && !!user)}
+                      readOnly={isLoggedIn && !!user}
                       className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-lg font-normal text-foreground placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
