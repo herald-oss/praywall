@@ -47,6 +47,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get or create visitor ID
+    const existingVisitorId = request.cookies.get("praywall_visitor")?.value;
+    const visitorId = existingVisitorId || crypto.randomUUID();
+
     const [newPrayer] = await db
       .insert(prayers)
       .values({
@@ -54,6 +58,7 @@ export async function POST(request: NextRequest) {
         displayName: isAnonymous ? null : (name?.trim()?.slice(0, 30) || null),
         isAnonymous,
         category,
+        visitorId,
       })
       .returning();
 
@@ -61,7 +66,19 @@ export async function POST(request: NextRequest) {
     const prayerWithUser = { ...newPrayer, userName: null };
     notifySSEClients(prayerWithUser);
 
-    return NextResponse.json(newPrayer, { status: 201 });
+    const response = NextResponse.json(newPrayer, { status: 201 });
+
+    // Set visitor cookie if not present
+    if (!existingVisitorId) {
+      response.cookies.set("praywall_visitor", visitorId, {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 365,
+        path: "/",
+      });
+    }
+
+    return response;
   } catch (error) {
     console.error("Failed to create prayer:", error);
     return NextResponse.json(

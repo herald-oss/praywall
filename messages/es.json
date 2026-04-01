@@ -1,8 +1,10 @@
 {
   "hero": {
     "tagline": "No estás solo. Alguien va a orar por ti.",
+    "description": "Una cadena de oración sin fronteras. No importa si estás lejos de una iglesia o si llevas algo que nunca le has contado a nadie. Aquí puedes pedir oración de forma anónima, y alguien real se compromete a orar por ti. Sin juicio. Sin exposición. Solo oración.",
     "verse": "Sobrellevad los unos las cargas de los otros, y cumplid así la ley de Cristo.",
-    "reference": "Gálatas 6:2"
+    "reference": "Gálatas 6:2",
+    "featured_title": "Esta oración necesita de ti"
   },
   "wall": {
     "title": "Muro de Oración",
@@ -37,6 +39,34 @@
     "work": "Trabajo",
     "spiritual": "Espiritual",
     "gratitude": "Gratitud"
+  },
+  "auth": {
+    "create_account": "Crear cuenta",
+    "sign_in": "Entrar",
+    "sign_out": "Cerrar sesión",
+    "username": "Nombre de usuario",
+    "username_placeholder": "tunombre",
+    "password": "Contraseña",
+    "display_name": "Tu nombre",
+    "display_name_placeholder": "Cómo quieres que te llamen",
+    "register": "Crear cuenta",
+    "login": "Entrar",
+    "username_taken": "Este nombre ya está en uso",
+    "username_available": "Disponible",
+    "username_invalid": "3-20 caracteres, letras, números y guiones bajos",
+    "password_short": "Mínimo 8 caracteres",
+    "benefits_title": "¿Por qué crear una cuenta?",
+    "benefit_answered": "Marca tus oraciones como respondidas y deja testimonio",
+    "benefit_history": "Ve todas tus peticiones en un solo lugar",
+    "benefit_notifications": "Recibe cuando alguien ora por ti",
+    "benefit_share": "Comparte tus peticiones para que más personas oren",
+    "error": "Hubo un error. Intenta de nuevo."
+  },
+  "success": {
+    "title": "Tu oración fue publicada",
+    "message": "Alguien va a orar por ti. No estás sol@.",
+    "close": "Cerrar",
+    "create_account_prompt": "¿Quieres hacer más con tus peticiones?"
   },
   "common": {
     "app_name": "Unos Por Otros",

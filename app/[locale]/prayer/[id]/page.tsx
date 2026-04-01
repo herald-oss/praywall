@@ -21,6 +21,7 @@ export default async function PrayerDetailPage({
       text: prayers.text,
       displayName: prayers.displayName,
       userId: prayers.userId,
+      visitorId: prayers.visitorId,
       isAnonymous: prayers.isAnonymous,
       category: prayers.category,
       intercessorCount: prayers.intercessorCount,

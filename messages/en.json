@@ -1,8 +1,10 @@
 {
   "hero": {
     "tagline": "You are not alone. Someone will pray for you.",
+    "description": "A prayer chain with no borders. It doesn't matter if you're far from a church or carrying something you've never told anyone. Here you can ask for prayer anonymously, and a real person commits to pray for you. No judgment. No exposure. Just prayer.",
     "verse": "Bear one another's burdens, and so fulfill the law of Christ.",
-    "reference": "Galatians 6:2"
+    "reference": "Galatians 6:2",
+    "featured_title": "This prayer needs you"
   },
   "wall": {
     "title": "Prayer Wall",
@@ -37,6 +39,34 @@
     "work": "Work",
     "spiritual": "Spiritual",
     "gratitude": "Gratitude"
+  },
+  "auth": {
+    "create_account": "Create account",
+    "sign_in": "Sign in",
+    "sign_out": "Sign out",
+    "username": "Username",
+    "username_placeholder": "yourname",
+    "password": "Password",
+    "display_name": "Your name",
+    "display_name_placeholder": "What should we call you",
+    "register": "Create account",
+    "login": "Sign in",
+    "username_taken": "This username is already taken",
+    "username_available": "Available",
+    "username_invalid": "3-20 characters, letters, numbers, and underscores",
+    "password_short": "At least 8 characters",
+    "benefits_title": "Why create an account?",
+    "benefit_answered": "Mark your prayers as answered and share your testimony",
+    "benefit_history": "See all your prayer requests in one place",
+    "benefit_notifications": "Get notified when someone prays for you",
+    "benefit_share": "Share your requests so more people can pray",
+    "error": "Something went wrong. Try again."
+  },
+  "success": {
+    "title": "Your prayer was posted",
+    "message": "Someone will pray for you. You are not alone.",
+    "close": "Close",
+    "create_account_prompt": "Want to do more with your prayer requests?"
   },
   "common": {
     "app_name": "Praywall",

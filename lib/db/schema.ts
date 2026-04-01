@@ -16,6 +16,7 @@ import {
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  username: text("username").unique(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
@@ -73,6 +74,7 @@ export const prayers = pgTable("prayers", {
   text: text("text").notNull(),
   displayName: text("display_name"),
   userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+  visitorId: text("visitor_id"),
   isAnonymous: boolean("is_anonymous").default(true),
   category: text("category").default("general"),
   intercessorCount: integer("intercessor_count").default(0),
