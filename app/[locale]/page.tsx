@@ -63,10 +63,10 @@ function HomeContent({ featured }: { featured: FeaturedPrayer | null }) {
   const t = useTranslations();
 
   return (
-    <main className="flex-1 flex flex-col">
+    <main className="flex-1 flex flex-col max-w-[1440px] mx-auto w-full px-6">
       {/* Hero — 70vh, split on desktop, stacked on mobile */}
-      <section className="min-h-[70vh] flex items-center px-6">
-        <div className="max-w-[1440px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+      <section className="min-h-[70vh] flex items-center">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
           {/* Left — Text */}
           <div className="space-y-6">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[1.1]">
@@ -107,12 +107,10 @@ function HomeContent({ featured }: { featured: FeaturedPrayer | null }) {
       </section>
 
       {/* Separator */}
-      <div className="max-w-[1440px] mx-auto w-full px-6">
-        <div className="h-px bg-border mb-8" />
-      </div>
+      <div className="h-px bg-border mb-8" />
 
       {/* Wall */}
-      <section className="max-w-[1440px] mx-auto w-full px-6 pb-12">
+      <section className="pb-12">
         <PrayerWall />
       </section>
     </main>
