@@ -97,22 +97,22 @@ export function PrayerCard({ prayer }: { prayer: PrayerWithUser }) {
               {displayName}
             </span>
           </div>
-          <span className="font-mono text-xs tracking-[0.1em] text-subtle">
-            {getTimeAgo(new Date(prayer.createdAt), "es")}
-          </span>
+          <div className="flex items-center gap-2">
+            {prayer.category && prayer.category !== "general" && (
+              <span className="font-mono text-xs tracking-[0.1em] uppercase text-subtle border border-border rounded px-2 py-0.5">
+                {t(`categories.${prayer.category}` as Parameters<typeof t>[0])}
+              </span>
+            )}
+            <span className="font-mono text-xs tracking-[0.1em] text-subtle">
+              {getTimeAgo(new Date(prayer.createdAt), "es")}
+            </span>
+          </div>
         </div>
 
         {/* Prayer text — the protagonist */}
         <p className="text-base sm:text-lg text-foreground/90 font-normal leading-relaxed mb-4 whitespace-pre-wrap break-words">
           {prayer.text}
         </p>
-
-        {/* Category tag */}
-        {prayer.category && prayer.category !== "general" && (
-          <span className="inline-block font-mono text-xs tracking-[0.1em] uppercase text-subtle border border-border rounded px-2 py-0.5 mb-3">
-            {t(`categories.${prayer.category}` as Parameters<typeof t>[0])}
-          </span>
-        )}
 
         {/* Footer — warm state + action */}
         <div className="flex items-center justify-between gap-3">
