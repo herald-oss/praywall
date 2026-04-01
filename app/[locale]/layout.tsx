@@ -2,8 +2,7 @@ import { NextIntlClientProvider, useMessages } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { Toaster } from "react-hot-toast";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { UserNav } from "@/components/user-nav";
+import { Navbar } from "@/components/navbar";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -21,11 +20,8 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider locale={locale}>
+      <Navbar />
       {children}
-      <div className="fixed top-4 right-4 z-40 flex items-center gap-2">
-        <UserNav />
-        <ThemeToggle />
-      </div>
       <Toaster
         position="bottom-center"
         toastOptions={{

@@ -57,10 +57,11 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error: unknown) {
     // Handle unique constraint violation (already prayed)
-    if (
-      error instanceof Error &&
-      error.message.includes("unique")
-    ) {
+    const pgError = error instanceof Error && "cause" in error
+      ? (error.cause as { code?: string })
+      : null;
+
+    if (pgError?.code === "23505") {
       return NextResponse.json(
         { error: "You already prayed for this" },
         { status: 409 }

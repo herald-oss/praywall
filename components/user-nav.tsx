@@ -4,7 +4,8 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthDialog } from "@/components/auth-dialog";
 import { useState } from "react";
-import { LogIn, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
+import Link from "next/link";
 
 export function UserNav() {
   const t = useTranslations();
@@ -37,13 +38,20 @@ export function UserNav() {
 
   return (
     <>
-      <button
-        onClick={() => setAuthOpen(true)}
-        className="h-10 w-10 rounded-lg border border-border flex items-center justify-center text-subtle hover:text-foreground hover:border-muted-foreground/30 transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        aria-label={t("auth.sign_in")}
-      >
-        <LogIn className="h-4 w-4" />
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => setAuthOpen(true)}
+          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300"
+        >
+          {t("auth.sign_in")}
+        </button>
+        <Link
+          href="/register"
+          className="text-sm font-medium text-primary hover:text-primary/80 transition-colors duration-300"
+        >
+          {t("auth.create_account")}
+        </Link>
+      </div>
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
     </>
   );

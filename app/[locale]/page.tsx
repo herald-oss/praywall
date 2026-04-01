@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { PrayerWall } from "@/components/prayer-wall";
 import { PrayerCard } from "@/components/prayer-card";
-import { Flame } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { prayers, user } from "@/lib/db/schema";
@@ -64,35 +63,22 @@ function HomeContent({ featured }: { featured: FeaturedPrayer | null }) {
   const t = useTranslations();
 
   return (
-    <main className="flex-1 flex flex-col max-w-[1440px] mx-auto w-full px-6">
-      {/* Hero — Editorial Cyberfaith */}
-      <section className="pt-12 pb-10 sm:pt-16 sm:pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-          {/* Left — Explanation */}
-          <div>
-            {/* Logo mark */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="rounded-full bg-primary/10 p-2 shadow-[0_0_24px_rgba(var(--glow-color),0.2)]">
-                <Flame className="h-5 w-5 text-primary" />
-              </div>
-              <span className="font-mono text-xs tracking-[0.1em] uppercase text-subtle">
-                {t("common.app_name")}
-              </span>
-            </div>
-
-            {/* Title */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[1.1] mb-6">
+    <main className="flex-1 flex flex-col">
+      {/* Hero — 70vh, split on desktop, stacked on mobile */}
+      <section className="min-h-[70vh] flex items-center px-6">
+        <div className="max-w-[1440px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+          {/* Left — Text */}
+          <div className="space-y-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[1.1]">
               {t("wall.title")}
             </h1>
 
-            {/* Description */}
-            <p className="text-foreground/80 font-normal text-base sm:text-lg leading-relaxed mb-6">
+            <p className="text-foreground/80 font-normal text-base sm:text-lg leading-relaxed">
               {t("hero.description")}
             </p>
 
-            {/* Verse */}
-            <blockquote className="border-l-2 border-primary/40 pl-4 mb-6">
-              <p className="text-base sm:text-lg text-foreground/70 italic font-light leading-relaxed">
+            <blockquote className="border-l-2 border-primary/40 pl-4">
+              <p className="text-base text-foreground/60 italic leading-relaxed">
                 &ldquo;{t("hero.verse")}&rdquo;
               </p>
               <cite className="font-mono text-xs tracking-[0.1em] text-subtle not-italic mt-1 block">
@@ -100,10 +86,9 @@ function HomeContent({ featured }: { featured: FeaturedPrayer | null }) {
               </cite>
             </blockquote>
 
-            {/* CTA */}
             <Link
               href="/new"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-mono text-xs tracking-[0.1em] uppercase font-medium text-primary-foreground transition-all duration-300 hover:bg-primary/80 hover:shadow-[0_0_20px_rgba(var(--glow-color),0.3)]"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-mono text-xs tracking-[0.1em] uppercase font-medium text-primary-foreground transition-all duration-300 hover:bg-primary/80 hover:shadow-[0_0_20px_rgba(var(--glow-color),0.3)]"
             >
               {t("wall.new_prayer")}
             </Link>
@@ -111,7 +96,7 @@ function HomeContent({ featured }: { featured: FeaturedPrayer | null }) {
 
           {/* Right — Featured prayer */}
           {featured && (
-            <div className="lg:pt-12">
+            <div>
               <p className="font-mono text-xs tracking-[0.1em] uppercase text-subtle mb-4">
                 {t("hero.featured_title")}
               </p>
@@ -122,10 +107,12 @@ function HomeContent({ featured }: { featured: FeaturedPrayer | null }) {
       </section>
 
       {/* Separator */}
-      <div className="h-px bg-border mb-8" />
+      <div className="max-w-[1440px] mx-auto w-full px-6">
+        <div className="h-px bg-border mb-8" />
+      </div>
 
       {/* Wall */}
-      <section className="pb-12">
+      <section className="max-w-[1440px] mx-auto w-full px-6 pb-12">
         <PrayerWall />
       </section>
     </main>
