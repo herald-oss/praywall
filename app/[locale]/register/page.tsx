@@ -1,7 +1,7 @@
 import { setRequestLocale } from "next-intl/server";
-import { NewPrayerPageContent } from "@/components/new-prayer-page-content";
+import { RegisterPageContent } from "@/components/register-page-content";
 
-export default async function NewPrayerPage({
+export default async function RegisterPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -9,5 +9,5 @@ export default async function NewPrayerPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <NewPrayerPageContent />;
+  return <RegisterPageContent />;
 }

@@ -65,8 +65,21 @@
   "success": {
     "title": "Tu oración fue publicada",
     "message": "Alguien va a orar por ti. No estás sol@.",
-    "close": "Cerrar",
-    "create_account_prompt": "¿Quieres hacer más con tus peticiones?"
+    "continue": "Continuar"
+  },
+  "pray_success": {
+    "message_1": "Gracias por orar. Tu oración tiene poder.",
+    "message_2": "Acabas de hacer algo hermoso. Dios escuchó.",
+    "message_3": "Esa persona ya no está sola. Gracias.",
+    "message_4": "Tu oración importa más de lo que crees.",
+    "message_5": "Alguien en algún lugar acaba de sentir paz. Gracias.",
+    "continue": "Continuar"
+  },
+  "register_page": {
+    "title": "Crea tu cuenta",
+    "subtitle": "Haz más con tus oraciones",
+    "no_thanks": "No gracias, no volver a recordar",
+    "back_home": "Volver al inicio"
   },
   "common": {
     "app_name": "Unos Por Otros",

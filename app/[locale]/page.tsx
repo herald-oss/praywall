@@ -2,8 +2,8 @@ import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { PrayerWall } from "@/components/prayer-wall";
 import { PrayerCard } from "@/components/prayer-card";
-import { NewPrayerDialog } from "@/components/new-prayer-dialog";
 import { Flame } from "lucide-react";
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { prayers, user } from "@/lib/db/schema";
 import { eq, asc } from "drizzle-orm";
@@ -101,9 +101,12 @@ function HomeContent({ featured }: { featured: FeaturedPrayer | null }) {
             </blockquote>
 
             {/* CTA */}
-            <NewPrayerDialog>
+            <Link
+              href="/new"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-mono text-xs tracking-[0.1em] uppercase font-medium text-primary-foreground transition-all duration-300 hover:bg-primary/80 hover:shadow-[0_0_20px_rgba(var(--glow-color),0.3)]"
+            >
               {t("wall.new_prayer")}
-            </NewPrayerDialog>
+            </Link>
           </div>
 
           {/* Right — Featured prayer */}

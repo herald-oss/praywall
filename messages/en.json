@@ -65,8 +65,21 @@
   "success": {
     "title": "Your prayer was posted",
     "message": "Someone will pray for you. You are not alone.",
-    "close": "Close",
-    "create_account_prompt": "Want to do more with your prayer requests?"
+    "continue": "Continue"
+  },
+  "pray_success": {
+    "message_1": "Thank you for praying. Your prayer has power.",
+    "message_2": "You just did something beautiful. God heard.",
+    "message_3": "That person is no longer alone. Thank you.",
+    "message_4": "Your prayer matters more than you think.",
+    "message_5": "Someone somewhere just felt peace. Thank you.",
+    "continue": "Continue"
+  },
+  "register_page": {
+    "title": "Create your account",
+    "subtitle": "Do more with your prayers",
+    "no_thanks": "No thanks, don't remind me again",
+    "back_home": "Back to home"
   },
   "common": {
     "app_name": "Praywall",

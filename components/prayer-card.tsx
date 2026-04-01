@@ -7,7 +7,7 @@ import { HandHeart } from "lucide-react";
 import { useState, useCallback } from "react";
 import type { Prayer } from "@/lib/db/schema";
 import { IntercessorCount } from "./intercessor-count";
-import toast from "react-hot-toast";
+import { PraySuccessDialog } from "./pray-success-dialog";
 
 type PrayerWithUser = Prayer & {
   userName: string | null;
@@ -50,6 +50,7 @@ export function PrayerCard({ prayer }: { prayer: PrayerWithUser }) {
   const [count, setCount] = useState(prayer.intercessorCount ?? 0);
   const [hasPrayed, setHasPrayed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPraySuccess, setShowPraySuccess] = useState(false);
 
   const handlePray = useCallback(async () => {
     if (hasPrayed || isSubmitting) return;
@@ -65,7 +66,7 @@ export function PrayerCard({ prayer }: { prayer: PrayerWithUser }) {
       if (res.ok) {
         setCount((c) => c + 1);
         setHasPrayed(true);
-        toast.success(t("wall.you_prayed"));
+        setShowPraySuccess(true);
       }
     } finally {
       setIsSubmitting(false);
@@ -131,6 +132,10 @@ export function PrayerCard({ prayer }: { prayer: PrayerWithUser }) {
           </Button>
         </div>
       </CardContent>
+      <PraySuccessDialog
+        open={showPraySuccess}
+        onOpenChange={setShowPraySuccess}
+      />
     </Card>
   );
 }
