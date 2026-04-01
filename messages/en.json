@@ -1,0 +1,47 @@
+{
+  "hero": {
+    "tagline": "You are not alone. Someone will pray for you.",
+    "verse": "Bear one another's burdens, and so fulfill the law of Christ.",
+    "reference": "Galatians 6:2"
+  },
+  "wall": {
+    "title": "Prayer Wall",
+    "subtitle": "Bearing one another's burdens. Galatians 6:2",
+    "new_prayer": "Request prayer",
+    "prayed": "I prayed for this",
+    "answered": "God answered!",
+    "anonymous": "Anonymous",
+    "empty": "No prayer requests yet. Be the first to ask for prayer.",
+    "loading": "Loading prayers...",
+    "be_first": "Be the first to pray",
+    "someone_praying": "Someone is praying for this",
+    "some_praying": "Some people are praying",
+    "many_praying": "Many people are praying",
+    "you_prayed": "You prayed for this"
+  },
+  "form": {
+    "placeholder": "What do you need prayer for today?",
+    "submit": "Post request",
+    "chars_left": "{count} characters left",
+    "anonymous_toggle": "Post anonymously",
+    "name_label": "Your name",
+    "name_placeholder": "First name only, e.g. Mary",
+    "category": "Category",
+    "success": "Your prayer request was posted. We're praying for you.",
+    "error": "There was an error posting your request."
+  },
+  "categories": {
+    "general": "General",
+    "health": "Health",
+    "family": "Family",
+    "work": "Work",
+    "spiritual": "Spiritual",
+    "gratitude": "Gratitude"
+  },
+  "common": {
+    "app_name": "Praywall",
+    "back": "Back",
+    "time_ago": "{time} ago",
+    "just_now": "just now"
+  }
+}

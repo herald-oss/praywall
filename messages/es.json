@@ -1,0 +1,47 @@
+{
+  "hero": {
+    "tagline": "No estás solo. Alguien va a orar por ti.",
+    "verse": "Sobrellevad los unos las cargas de los otros, y cumplid así la ley de Cristo.",
+    "reference": "Gálatas 6:2"
+  },
+  "wall": {
+    "title": "Muro de Oración",
+    "subtitle": "Unos por otros. Gálatas 6:2",
+    "new_prayer": "Pedir oración",
+    "prayed": "Oré por esto",
+    "answered": "¡Dios respondió!",
+    "anonymous": "Anónimo",
+    "empty": "Aún no hay peticiones. Sé el primero en pedir oración.",
+    "loading": "Cargando peticiones...",
+    "be_first": "Sé el primero en orar",
+    "someone_praying": "Alguien está orando por esto",
+    "some_praying": "Algunas personas están orando",
+    "many_praying": "Muchas personas están orando",
+    "you_prayed": "Oraste por esto"
+  },
+  "form": {
+    "placeholder": "¿Por qué necesitas oración hoy?",
+    "submit": "Publicar petición",
+    "chars_left": "{count} caracteres restantes",
+    "anonymous_toggle": "Publicar como anónimo",
+    "name_label": "Tu nombre",
+    "name_placeholder": "Solo tu nombre, ej: María",
+    "category": "Categoría",
+    "success": "Tu petición fue publicada. Estamos orando por ti.",
+    "error": "Hubo un error al publicar tu petición."
+  },
+  "categories": {
+    "general": "General",
+    "health": "Salud",
+    "family": "Familia",
+    "work": "Trabajo",
+    "spiritual": "Espiritual",
+    "gratitude": "Gratitud"
+  },
+  "common": {
+    "app_name": "Unos Por Otros",
+    "back": "Volver",
+    "time_ago": "hace {time}",
+    "just_now": "ahora mismo"
+  }
+}

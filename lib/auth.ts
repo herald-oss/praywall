@@ -1,0 +1,12 @@
+import { betterAuth } from "better-auth";
+import { anonymous } from "better-auth/plugins";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from "@/lib/db";
+
+export const auth = betterAuth({
+  database: drizzleAdapter(db, { provider: "pg" }),
+  plugins: [anonymous()],
+  emailAndPassword: {
+    enabled: true,
+  },
+});

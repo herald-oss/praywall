@@ -1,0 +1,21 @@
+{
+  "name": "Unos Por Otros",
+  "short_name": "Praywall",
+  "description": "Muro de oración. 33 personas oran por ti.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#17120e",
+  "theme_color": "#c2774a",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
