@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -26,8 +27,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html className={`${outfit.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html className={`${outfit.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning>
+      <body className="min-h-full flex flex-col">
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

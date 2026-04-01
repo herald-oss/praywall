@@ -14,7 +14,7 @@ export function IntercessorCount({ count }: { count: number }) {
   }
 
   return (
-    <span className="text-xs text-muted-foreground italic">
+    <span className="font-mono text-sm tracking-[0.1em] text-muted-foreground italic">
       {getWarmState()}
     </span>
   );

@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { HandHeart } from "lucide-react";
 import { useState, useCallback } from "react";
 import type { Prayer } from "@/lib/db/schema";
@@ -21,38 +20,29 @@ function getTimeAgo(date: Date, locale: string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return locale === "es" ? "ahora mismo" : "just now";
+  if (diffMins < 1) return locale === "es" ? "ahora" : "now";
   if (diffMins < 60)
-    return locale === "es" ? `hace ${diffMins} min` : `${diffMins}m ago`;
+    return locale === "es" ? `${diffMins}m` : `${diffMins}m`;
   if (diffHours < 24)
-    return locale === "es" ? `hace ${diffHours}h` : `${diffHours}h ago`;
-  return locale === "es" ? `hace ${diffDays}d` : `${diffDays}d ago`;
+    return locale === "es" ? `${diffHours}h` : `${diffHours}h`;
+  return locale === "es" ? `${diffDays}d` : `${diffDays}d`;
 }
 
-function getAvatarColor(userId: string | null): string {
+function getAvatarColor(id: string | null): string {
   const colors = [
-    "bg-amber-700",
-    "bg-orange-700",
-    "bg-rose-700",
-    "bg-red-800",
-    "bg-yellow-700",
-    "bg-emerald-800",
-    "bg-sky-800",
-    "bg-violet-800",
+    "bg-primary/20 text-primary",
+    "bg-primary/15 text-primary/80",
+    "bg-primary/25 text-primary/90",
+    "bg-primary/10 text-primary/70",
   ];
-  if (!userId) return colors[0];
-  const hash = userId.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  if (!id) return colors[0];
+  const hash = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   return colors[hash % colors.length];
 }
 
 function getInitials(name: string | null, isAnonymous: boolean): string {
   if (isAnonymous || !name) return "?";
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  return name.charAt(0).toUpperCase();
 }
 
 export function PrayerCard({ prayer }: { prayer: PrayerWithUser }) {
@@ -88,58 +78,57 @@ export function PrayerCard({ prayer }: { prayer: PrayerWithUser }) {
     return t("wall.prayed");
   }
 
+  const displayName = prayer.isAnonymous
+    ? t("wall.anonymous")
+    : prayer.displayName ?? prayer.userName ?? t("wall.anonymous");
+
   return (
-    <Card className="relative overflow-hidden transition-all hover:border-primary/30">
-      <CardContent className="pt-5 pb-4">
-        <div className="flex gap-3">
-          {/* Avatar */}
-          <div
-            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white ${getAvatarColor(prayer.userId)}`}
+    <Card className="relative overflow-hidden transition-all duration-300 hover:border-primary/20 hover:shadow-[0_0_30px_rgba(var(--glow-color),0.06)]">
+      <CardContent className="p-6">
+        {/* Header — monospace meta */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            <div
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-mono font-semibold ${getAvatarColor(prayer.userId ?? prayer.id)}`}
+            >
+              {getInitials(prayer.displayName ?? prayer.userName, prayer.isAnonymous ?? false)}
+            </div>
+            <span className="font-mono text-xs tracking-[0.1em] text-subtle uppercase">
+              {displayName}
+            </span>
+          </div>
+          <span className="font-mono text-xs tracking-[0.1em] text-subtle">
+            {getTimeAgo(new Date(prayer.createdAt), "es")}
+          </span>
+        </div>
+
+        {/* Prayer text — the protagonist */}
+        <p className="text-base sm:text-lg text-foreground/90 font-normal leading-relaxed mb-4 whitespace-pre-wrap break-words">
+          {prayer.text}
+        </p>
+
+        {/* Category tag */}
+        {prayer.category && prayer.category !== "general" && (
+          <span className="inline-block font-mono text-xs tracking-[0.1em] uppercase text-subtle border border-border rounded px-2 py-0.5 mb-3">
+            {t(`categories.${prayer.category}` as Parameters<typeof t>[0])}
+          </span>
+        )}
+
+        {/* Footer — warm state + action */}
+        <div className="flex items-center justify-between gap-3">
+          {count > 0 && <IntercessorCount count={count} />}
+
+          <Button
+            variant={hasPrayed ? "secondary" : "default"}
+            size="default"
+            onClick={handlePray}
+            disabled={hasPrayed || isSubmitting}
+            aria-pressed={hasPrayed}
+            className="gap-2 shrink-0 ml-auto text-base tracking-wide transition-all duration-300"
           >
-            {getInitials(prayer.displayName ?? prayer.userName, prayer.isAnonymous ?? false)}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium text-foreground">
-                {prayer.isAnonymous
-                  ? t("wall.anonymous")
-                  : prayer.displayName ?? prayer.userName ?? t("wall.anonymous")}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {getTimeAgo(new Date(prayer.createdAt), "es")}
-              </span>
-            </div>
-
-            {/* Prayer text */}
-            <p className="text-sm text-foreground/90 mb-3 whitespace-pre-wrap break-words">
-              {prayer.text}
-            </p>
-
-            {/* Category badge */}
-            {prayer.category && prayer.category !== "general" && (
-              <Badge variant="secondary" className="mb-3 text-xs">
-                {t(`categories.${prayer.category}` as Parameters<typeof t>[0])}
-              </Badge>
-            )}
-
-            {/* Warm state + pray button */}
-            <div className="flex items-center justify-between gap-3">
-              {count > 0 && <IntercessorCount count={count} />}
-
-              <Button
-                variant={hasPrayed ? "secondary" : "default"}
-                size="sm"
-                onClick={handlePray}
-                disabled={hasPrayed || isSubmitting}
-                className="gap-1.5 shrink-0 ml-auto"
-              >
-                <HandHeart className="h-4 w-4" />
-                {getButtonText()}
-              </Button>
-            </div>
-          </div>
+            <HandHeart className="h-3.5 w-3.5" />
+            {getButtonText()}
+          </Button>
         </div>
       </CardContent>
     </Card>
