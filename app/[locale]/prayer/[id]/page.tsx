@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { setRequestLocale } from "next-intl/server";
 import { db } from "@/lib/db";
 import { prayers, user } from "@/lib/db/schema";

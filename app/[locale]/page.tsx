@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { PrayerWall } from "@/components/prayer-wall";
