@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import toast from "react-hot-toast";
 
@@ -27,14 +27,26 @@ export function NewPrayerForm({ onSuccess }: { onSuccess?: () => void }) {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [category, setCategory] = useState<string>("general");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Synchronous guard: setIsSubmitting only takes effect on the next render,
+  // so a fast double-click/tap can still slip a second submit through the
+  // isSubmitting state check. A ref is checked and set immediately instead.
+  const isSubmittingRef = useRef(false);
+  // Stable per-attempt id so a duplicate request (double submit, retry)
+  // is deduped by the server instead of creating a second prayer row.
+  const clientRequestIdRef = useRef<string | null>(null);
 
   const charsLeft = MAX_CHARS - text.length;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!text.trim() || isSubmitting) return;
+    if (!text.trim() || isSubmittingRef.current) return;
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
+
+    if (!clientRequestIdRef.current) {
+      clientRequestIdRef.current = crypto.randomUUID();
+    }
 
     try {
       const res = await fetch("/api/prayers", {
@@ -49,10 +61,12 @@ export function NewPrayerForm({ onSuccess }: { onSuccess?: () => void }) {
               : name.trim() || null,
           isAnonymous,
           category,
+          clientRequestId: clientRequestIdRef.current,
         }),
       });
 
       if (res.ok) {
+        clientRequestIdRef.current = null;
         setText("");
         setName("");
         setIsAnonymous(false);
@@ -64,6 +78,7 @@ export function NewPrayerForm({ onSuccess }: { onSuccess?: () => void }) {
     } catch {
       toast.error(t("form.error"));
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   }

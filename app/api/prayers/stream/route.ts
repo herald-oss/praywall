@@ -1,6 +1,6 @@
 import type { Prayer } from "@/lib/db/schema";
 
-type PrayerWithUser = Prayer & { userName: string | null };
+type PrayerWithUser = Omit<Prayer, "clientRequestId"> & { userName: string | null };
 type SSEClient = (data: PrayerWithUser) => void;
 
 const clients = new Set<SSEClient>();

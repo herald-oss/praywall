@@ -9,7 +9,7 @@ import type { Prayer } from "@/lib/db/schema";
 import { IntercessorCount } from "./intercessor-count";
 import { PraySuccessDialog } from "./pray-success-dialog";
 
-type PrayerWithUser = Prayer & {
+type PrayerWithUser = Omit<Prayer, "clientRequestId"> & {
   userName: string | null;
 };
 

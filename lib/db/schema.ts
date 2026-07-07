@@ -81,6 +81,7 @@ export const prayers = pgTable("prayers", {
   goalReached: boolean("goal_reached").default(false),
   answeredAt: timestamp("answered_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  clientRequestId: text("client_request_id").unique(),
 });
 
 export const intercessions = pgTable(

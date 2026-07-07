@@ -38,7 +38,13 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text, name, isAnonymous = true, category = "general" } = body;
+    const {
+      text,
+      name,
+      isAnonymous = true,
+      category = "general",
+      clientRequestId,
+    } = body;
 
     if (!text || typeof text !== "string" || text.length > 280) {
       return NextResponse.json(
@@ -51,7 +57,12 @@ export async function POST(request: NextRequest) {
     const existingVisitorId = request.cookies.get("praywall_visitor")?.value;
     const visitorId = existingVisitorId || crypto.randomUUID();
 
-    const [newPrayer] = await db
+    const dedupeKey =
+      typeof clientRequestId === "string" && clientRequestId.length > 0
+        ? clientRequestId
+        : null;
+
+    const [inserted] = await db
       .insert(prayers)
       .values({
         text: text.trim(),
@@ -59,12 +70,38 @@ export async function POST(request: NextRequest) {
         isAnonymous,
         category,
         visitorId,
+        clientRequestId: dedupeKey,
       })
+      .onConflictDoNothing({ target: prayers.clientRequestId })
       .returning();
 
-    // Notify SSE clients
-    const prayerWithUser = { ...newPrayer, userName: null };
-    notifySSEClients(prayerWithUser);
+    let newPrayer = inserted;
+    let isDuplicate = false;
+
+    // Same clientRequestId already inserted (e.g. double-submit) — return
+    // the existing row instead of inserting a second one.
+    if (!newPrayer && dedupeKey) {
+      const [existing] = await db
+        .select()
+        .from(prayers)
+        .where(eq(prayers.clientRequestId, dedupeKey))
+        .limit(1);
+      newPrayer = existing;
+      isDuplicate = true;
+    }
+
+    if (!newPrayer) {
+      return NextResponse.json(
+        { error: "Failed to create prayer" },
+        { status: 500 }
+      );
+    }
+
+    // Notify SSE clients only for genuinely new prayers
+    if (!isDuplicate) {
+      const prayerWithUser = { ...newPrayer, userName: null };
+      notifySSEClients(prayerWithUser);
+    }
 
     const response = NextResponse.json(newPrayer, { status: 201 });
 
