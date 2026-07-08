@@ -9,10 +9,17 @@ import toast from "react-hot-toast";
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
-export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
+export function RegisterForm({
+  onSuccess,
+  mode,
+  onModeChange,
+}: {
+  onSuccess?: () => void;
+  mode: "register" | "login";
+  onModeChange: (mode: "register" | "login") => void;
+}) {
   const t = useTranslations();
   const { signUp, signIn } = useAuth();
-  const [mode, setMode] = useState<"register" | "login">("register");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -195,7 +202,9 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
       <div className="text-center">
         <button
           type="button"
-          onClick={() => setMode(mode === "register" ? "login" : "register")}
+          onClick={() =>
+            onModeChange(mode === "register" ? "login" : "register")
+          }
           className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-300"
         >
           {mode === "register" ? t("auth.sign_in") : t("auth.create_account")}

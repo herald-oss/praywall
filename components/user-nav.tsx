@@ -55,7 +55,11 @@ export function UserNav() {
           {t("auth.create_account")}
         </Link>
       </div>
-      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
+      <AuthDialog
+        open={authOpen}
+        onOpenChange={setAuthOpen}
+        initialMode="login"
+      />
     </>
   );
 }

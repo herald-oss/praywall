@@ -50,7 +50,7 @@
   },
   "auth": {
     "create_account": "Crear cuenta",
-    "sign_in": "Entrar",
+    "sign_in": "Iniciar sesión",
     "sign_out": "Cerrar sesión",
     "username": "Nombre de usuario",
     "username_placeholder": "tunombre",

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { RegisterForm } from "@/components/register-form";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Heart, BookOpen, Bell, Share2 } from "lucide-react";
 import Link from "next/link";
 
@@ -17,6 +17,7 @@ export function RegisterPageContent() {
   const t = useTranslations();
   const { isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
+  const [mode, setMode] = useState<"register" | "login">("register");
 
   useEffect(() => {
     if (!isLoading && isLoggedIn) {
@@ -53,7 +54,11 @@ export function RegisterPageContent() {
       </div>
 
       {/* Register form */}
-      <RegisterForm onSuccess={() => router.push("/")} />
+      <RegisterForm
+        mode={mode}
+        onModeChange={setMode}
+        onSuccess={() => router.push("/")}
+      />
 
       {/* No thanks */}
       <div className="mt-6 flex flex-col items-center gap-3">
