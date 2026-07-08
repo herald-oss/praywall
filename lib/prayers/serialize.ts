@@ -64,7 +64,9 @@ export function toPublicPrayer(
     intercessorCount: row.intercessorCount,
     goalReached: row.goalReached,
     answeredAt: row.answeredAt,
-    testimony: row.testimony,
+    // Testimony text is only for the owner's own account view — never
+    // exposed on the public wall/detail page to anyone else.
+    testimony: canManage ? row.testimony : null,
     createdAt: row.createdAt,
     userName: isAnon ? null : row.userName,
     canManage,
