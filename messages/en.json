@@ -30,7 +30,11 @@
     "name_placeholder": "First name only, e.g. Mary",
     "category": "Category",
     "success": "Your prayer request was posted. We're praying for you.",
-    "error": "There was an error posting your request."
+    "error": "There was an error posting your request.",
+    "error_inappropriate": "Your request contains inappropriate language. Please edit it.",
+    "error_spam": "Your request looks like spam (links or repeated text). Remove it and try again.",
+    "error_rate_limit": "You're posting too fast. Please wait a moment and try again.",
+    "error_too_long": "Your request is too long (280 characters max)."
   },
   "categories": {
     "general": "General",

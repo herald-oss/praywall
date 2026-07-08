@@ -6,9 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { PRAYER_MAX_CHARS } from "@/lib/constants";
 import toast from "react-hot-toast";
 
-const MAX_CHARS = 400;
+const MAX_CHARS = PRAYER_MAX_CHARS;
+
+const ERROR_KEY_MAP: Record<string, string> = {
+  inappropriate_content: "form.error_inappropriate",
+  spam: "form.error_spam",
+  rate_limit: "form.error_rate_limit",
+  too_long: "form.error_too_long",
+};
 
 const CATEGORIES = [
   "general",
@@ -73,7 +81,13 @@ export function NewPrayerForm({ onSuccess }: { onSuccess?: () => void }) {
         setCategory("general");
         onSuccess?.();
       } else {
-        toast.error(t("form.error"));
+        let code: string | undefined;
+        try {
+          code = (await res.json())?.error;
+        } catch {
+          // ignore — fall through to the generic error message
+        }
+        toast.error(t((code && ERROR_KEY_MAP[code]) || "form.error"));
       }
     } catch {
       toast.error(t("form.error"));

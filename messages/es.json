@@ -30,7 +30,11 @@
     "name_placeholder": "Solo tu nombre, ej: María",
     "category": "Categoría",
     "success": "Tu petición fue publicada. Estamos orando por ti.",
-    "error": "Hubo un error al publicar tu petición."
+    "error": "Hubo un error al publicar tu petición.",
+    "error_inappropriate": "Tu petición contiene lenguaje inapropiado. Por favor edítala.",
+    "error_spam": "Tu petición parece spam (enlaces o texto repetido). Quítalo e intenta de nuevo.",
+    "error_rate_limit": "Estás publicando demasiado rápido. Espera un momento e intenta de nuevo.",
+    "error_too_long": "Tu petición es demasiado larga (máximo 280 caracteres)."
   },
   "categories": {
     "general": "General",

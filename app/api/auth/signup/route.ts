@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { user, prayers } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { containsProfanity, moderateText } from "@/lib/moderation";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
@@ -12,9 +14,34 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { username, password, displayName } = body;
 
+    const rateLimitKey =
+      request.cookies.get("praywall_visitor")?.value ||
+      request.headers.get("x-forwarded-for") ||
+      "unknown";
+    const rateLimit = checkRateLimit(`signup:${rateLimitKey}`, {
+      limit: 3,
+      windowMs: 300_000,
+    });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "rate_limit" },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimit.retryAfterSec) },
+        }
+      );
+    }
+
     if (!username || !USERNAME_REGEX.test(username)) {
       return NextResponse.json(
         { error: "Username must be 3-20 characters, letters, numbers, and underscores only" },
+        { status: 400 }
+      );
+    }
+
+    if (containsProfanity(username)) {
+      return NextResponse.json(
+        { error: "inappropriate_content" },
         { status: 400 }
       );
     }
@@ -26,11 +53,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!displayName || displayName.trim().length === 0) {
+    if (!displayName || typeof displayName !== "string") {
       return NextResponse.json(
         { error: "Display name is required" },
         { status: 400 }
       );
+    }
+
+    const nameModeration = moderateText(displayName, { maxLen: 30 });
+    if (!nameModeration.ok) {
+      if (nameModeration.code === "empty") {
+        return NextResponse.json(
+          { error: "Display name is required" },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json({ error: nameModeration.code }, { status: 400 });
     }
 
     // Check if username is taken

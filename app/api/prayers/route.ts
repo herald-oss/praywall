@@ -3,6 +3,18 @@ import { db } from "@/lib/db";
 import { prayers, user } from "@/lib/db/schema";
 import { asc, desc, eq } from "drizzle-orm";
 import { notifySSEClients } from "../prayers/stream/route";
+import { containsProfanity, moderateText } from "@/lib/moderation";
+import { PRAYER_MAX_CHARS } from "@/lib/constants";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+const PRAYER_CATEGORIES = [
+  "general",
+  "health",
+  "family",
+  "work",
+  "spiritual",
+  "gratitude",
+];
 
 export async function GET() {
   try {
@@ -46,16 +58,43 @@ export async function POST(request: NextRequest) {
       clientRequestId,
     } = body;
 
-    if (!text || typeof text !== "string" || text.length > 280) {
-      return NextResponse.json(
-        { error: "Prayer text is required and must be 280 characters or less" },
-        { status: 400 }
-      );
-    }
-
     // Get or create visitor ID
     const existingVisitorId = request.cookies.get("praywall_visitor")?.value;
     const visitorId = existingVisitorId || crypto.randomUUID();
+
+    const rateLimit = checkRateLimit(visitorId, { limit: 5, windowMs: 60_000 });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "rate_limit" },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimit.retryAfterSec) },
+        }
+      );
+    }
+
+    if (!text || typeof text !== "string") {
+      return NextResponse.json({ error: "empty" }, { status: 400 });
+    }
+
+    const moderation = moderateText(text, {
+      maxLen: PRAYER_MAX_CHARS,
+      checkSpam: true,
+    });
+    if (!moderation.ok) {
+      return NextResponse.json({ error: moderation.code }, { status: 400 });
+    }
+
+    const safeCategory = PRAYER_CATEGORIES.includes(category)
+      ? category
+      : "general";
+
+    if (!isAnonymous && typeof name === "string" && containsProfanity(name)) {
+      return NextResponse.json(
+        { error: "inappropriate_content" },
+        { status: 400 }
+      );
+    }
 
     const dedupeKey =
       typeof clientRequestId === "string" && clientRequestId.length > 0
@@ -68,7 +107,7 @@ export async function POST(request: NextRequest) {
         text: text.trim(),
         displayName: isAnonymous ? null : (name?.trim()?.slice(0, 30) || null),
         isAnonymous,
-        category,
+        category: safeCategory,
         visitorId,
         clientRequestId: dedupeKey,
       })
