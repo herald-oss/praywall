@@ -3,7 +3,8 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { HandHeart } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { HandHeart, Sparkles } from "lucide-react";
 import { useState, useCallback } from "react";
 import type { PublicPrayer } from "@/lib/prayers/serialize";
 import { IntercessorCount } from "./intercessor-count";
@@ -46,16 +47,25 @@ function getInitials(name: string | null, isAnonymous: boolean): string {
 export function PrayerCard({
   prayer,
   onDeleted,
+  onAnswered,
+  initialHasPrayed = false,
+  allowTestimony = false,
 }: {
   prayer: PublicPrayer;
   onDeleted?: (id: string) => void;
+  onAnswered?: (updated: PublicPrayer) => void;
+  initialHasPrayed?: boolean;
+  allowTestimony?: boolean;
 }) {
   const t = useTranslations();
   const [count, setCount] = useState(prayer.intercessorCount ?? 0);
-  const [hasPrayed, setHasPrayed] = useState(false);
+  const [hasPrayed, setHasPrayed] = useState(initialHasPrayed);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPraySuccess, setShowPraySuccess] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showTestimonyForm, setShowTestimonyForm] = useState(false);
+  const [testimonyText, setTestimonyText] = useState(prayer.testimony ?? "");
+  const [isSavingTestimony, setIsSavingTestimony] = useState(false);
 
   const handlePray = useCallback(async () => {
     if (hasPrayed || isSubmitting) return;
@@ -99,6 +109,32 @@ export function PrayerCard({
       setIsDeleting(false);
     }
   }, [isDeleting, onDeleted, prayer.id, t]);
+
+  const handleSaveTestimony = useCallback(async () => {
+    if (isSavingTestimony || !testimonyText.trim()) return;
+    setIsSavingTestimony(true);
+
+    try {
+      const res = await fetch(`/api/prayers/${prayer.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ testimony: testimonyText.trim() }),
+      });
+
+      if (res.ok) {
+        const updated = (await res.json()) as PublicPrayer;
+        toast.success(t("account.testimony_success"));
+        setShowTestimonyForm(false);
+        onAnswered?.(updated);
+      } else {
+        toast.error(t("account.testimony_error"));
+      }
+    } catch {
+      toast.error(t("account.testimony_error"));
+    } finally {
+      setIsSavingTestimony(false);
+    }
+  }, [isSavingTestimony, testimonyText, prayer.id, onAnswered, t]);
 
   function getButtonText(): string {
     if (hasPrayed) return t("wall.you_prayed");
@@ -152,6 +188,74 @@ export function PrayerCard({
         <p className="text-base sm:text-lg text-foreground/90 font-normal leading-relaxed mb-4 whitespace-pre-wrap break-words">
           {prayer.text}
         </p>
+
+        {/* Testimony — only in the owner's "Peticiones" tab, never public */}
+        {allowTestimony && prayer.canManage && (
+          <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
+            {prayer.answeredAt && !showTestimonyForm ? (
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-primary">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span className="font-mono text-xs tracking-[0.1em] uppercase">
+                    {t("account.answered_badge")}
+                  </span>
+                </div>
+                {prayer.testimony && (
+                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap break-words">
+                    {prayer.testimony}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowTestimonyForm(true)}
+                  className="font-mono text-xs tracking-[0.1em] uppercase text-subtle hover:text-primary transition-colors duration-300"
+                >
+                  {t("account.edit_testimony")}
+                </button>
+              </div>
+            ) : showTestimonyForm ? (
+              <div className="space-y-2">
+                <Textarea
+                  value={testimonyText}
+                  onChange={(e) => setTestimonyText(e.target.value)}
+                  placeholder={t("account.testimony_placeholder")}
+                  maxLength={280}
+                  className="min-h-20 bg-background"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleSaveTestimony}
+                    disabled={isSavingTestimony || !testimonyText.trim()}
+                  >
+                    {t("account.testimony_save")}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      setShowTestimonyForm(false);
+                      setTestimonyText(prayer.testimony ?? "");
+                    }}
+                  >
+                    {t("account.cancel")}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowTestimonyForm(true)}
+                className="flex items-center gap-1.5 font-mono text-xs tracking-[0.1em] uppercase text-primary hover:text-primary/80 transition-colors duration-300"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {t("account.mark_answered")}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Footer — warm state + action */}
         <div className="flex items-center justify-between gap-3">

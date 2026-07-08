@@ -32,6 +32,7 @@ export default async function PrayerDetailPage({
       intercessorCount: prayers.intercessorCount,
       goalReached: prayers.goalReached,
       answeredAt: prayers.answeredAt,
+      testimony: prayers.testimony,
       createdAt: prayers.createdAt,
       userName: user.name,
     })

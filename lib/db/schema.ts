@@ -80,6 +80,8 @@ export const prayers = pgTable("prayers", {
   intercessorCount: integer("intercessor_count").default(0),
   goalReached: boolean("goal_reached").default(false),
   answeredAt: timestamp("answered_at"),
+  // Set together with answeredAt when the owner marks a prayer as answered.
+  testimony: text("testimony"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   clientRequestId: text("client_request_id").unique(),
   // NULL = visible en el muro. NOT NULL = archivada (borrada por el dueño o

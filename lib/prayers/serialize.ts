@@ -14,6 +14,7 @@ export type PrayerRow = Pick<
   | "intercessorCount"
   | "goalReached"
   | "answeredAt"
+  | "testimony"
   | "createdAt"
 > & { userName: string | null };
 
@@ -63,6 +64,7 @@ export function toPublicPrayer(
     intercessorCount: row.intercessorCount,
     goalReached: row.goalReached,
     answeredAt: row.answeredAt,
+    testimony: row.testimony,
     createdAt: row.createdAt,
     userName: isAnon ? null : row.userName,
     canManage,

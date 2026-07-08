@@ -36,6 +36,13 @@
       "when": 1783510821000,
       "tag": "0004_blue_goblin_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783538775668,
+      "tag": "0005_superb_white_queen",
+      "breakpoints": true
     }
   ]
 }

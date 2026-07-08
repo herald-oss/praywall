@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
         intercessorCount: prayers.intercessorCount,
         goalReached: prayers.goalReached,
         answeredAt: prayers.answeredAt,
+        testimony: prayers.testimony,
         createdAt: prayers.createdAt,
         userName: user.name,
       })
@@ -74,6 +75,12 @@ export async function POST(request: NextRequest) {
     // Get or create visitor ID
     const existingVisitorId = request.cookies.get("praywall_visitor")?.value;
     const visitorId = existingVisitorId || crypto.randomUUID();
+
+    // Attach the account server-side when logged in, so the prayer shows up
+    // under the user's account regardless of isAnonymous (which only
+    // controls display, not ownership/account-linking).
+    const session = await auth.api.getSession({ headers: await headers() });
+    const userId = session?.user?.id ?? null;
 
     const rateLimit = checkRateLimit(visitorId, { limit: 5, windowMs: 60_000 });
     if (!rateLimit.allowed) {
@@ -122,6 +129,7 @@ export async function POST(request: NextRequest) {
         isAnonymous,
         category: safeCategory,
         visitorId,
+        userId,
         clientRequestId: dedupeKey,
       })
       .onConflictDoNothing({ target: prayers.clientRequestId })
