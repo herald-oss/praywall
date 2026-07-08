@@ -8,9 +8,13 @@
 // reales sobre atrapar cada insulto posible.
 //
 // obscenity no normaliza tildes/ñ (no son ASCII), así que se listan variantes
-// con y sin acento explícitamente. Cada término se matchea como palabra
-// completa (con boundaries) en lib/moderation.ts, así que no hace falta listar
-// cada conjugación — solo formas base y plurales comunes.
+// con y sin acento explícitamente. lib/moderation.ts matchea cada término con
+// boundary solo al INICIO (no al final), así que un término cubre cualquier
+// palabra que EMPIECE con él (plurales, sufijos, "puta123"...) pero NO otras
+// conjugaciones/formas que no compartan ese prefijo exacto. Para verbos, listar
+// el prefijo/raíz más corto que cubra las formas comunes (ej. "ching" en vez
+// de "chingar", para que también atrape "chinga", "chingón", etc.), no el
+// infinitivo.
 export const ES_PROFANITY_TERMS: string[] = [
   "puta",
   "puto",
@@ -35,14 +39,13 @@ export const ES_PROFANITY_TERMS: string[] = [
   "vergas",
   "culiado",
   "culiada",
-  "chingar",
-  "chingada",
-  "chingado",
-  "chingadera",
-  "cagada",
-  "cagadas",
-  "cagon",
-  "cagón",
+  // Stem, not infinitive: matching only "chingar" misses the far more
+  // common imperative/conjugated forms ("chinga", "chingas", "chingón",
+  // "chingada"...) since the matcher only checks a leading boundary, not
+  // arbitrary inflections. "ching" as a prefix has no legitimate Spanish
+  // word it collides with.
+  "ching",
+  "cag",
   "malparido",
   "malparida",
   "mierda",
