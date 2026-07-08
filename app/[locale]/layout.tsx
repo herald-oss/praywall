@@ -3,6 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { Toaster } from "react-hot-toast";
 import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -22,6 +23,7 @@ export default async function LocaleLayout({
     <NextIntlClientProvider locale={locale}>
       <Navbar />
       {children}
+      <Footer />
       <Toaster
         position="bottom-center"
         toastOptions={{

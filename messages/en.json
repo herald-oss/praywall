@@ -19,7 +19,11 @@
     "someone_praying": "Someone is praying for this",
     "some_praying": "Some people are praying",
     "many_praying": "Many people are praying",
-    "you_prayed": "You prayed for this"
+    "you_prayed": "You prayed for this",
+    "delete": "Delete",
+    "delete_confirm": "Delete this prayer request? It's removed from the wall; the content is kept anonymized for community study.",
+    "delete_success": "Prayer request deleted.",
+    "delete_error": "Couldn't delete it. Please try again."
   },
   "form": {
     "placeholder": "What do you need prayer for today?",
@@ -85,10 +89,71 @@
     "no_thanks": "No thanks, don't remind me again",
     "back_home": "Back to home"
   },
+  "account": {
+    "title": "Your account",
+    "delete_title": "Delete account",
+    "delete_description": "Your username and session are deleted. Your prayer requests' text is kept fully anonymized (no name, no link to you) for aggregate community prayer-pattern study — it's never physically deleted.",
+    "delete_cta": "Delete my account",
+    "delete_confirm_cta": "Confirm deletion",
+    "cancel": "Cancel",
+    "delete_success": "Your account was deleted.",
+    "delete_error": "Couldn't delete your account. Check your password and try again."
+  },
   "common": {
     "app_name": "Praywall",
     "back": "Back",
     "time_ago": "{time} ago",
     "just_now": "just now"
+  },
+  "footer": {
+    "tagline": "A free, non-profit, open-source ministry.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "source": "Source code",
+    "copyright": "© {year} Praywall — Herald-OSS"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "updated": "Last updated: {date}",
+    "intro": "Praywall is a free, non-profit ministry. This page explains, in plain language, what data we collect, why, and what control you have over it.",
+    "collect_title": "What we collect",
+    "collect_body": "The text of your prayer request, an optional name (or \"Anonymous\" if you choose that), and the category you pick. If you don't have an account, we store a technical cookie (\"praywall_visitor\") for 1 year to recognize you as a visitor and let you delete your own requests. If you create an account: your username, display name, and password (hashed, never stored in plain text). We don't ask for or store a real email — signup uses an internal placeholder email that never leaves our systems. If you have an account, our authentication provider automatically stores the IP and browser of your login sessions.",
+    "why_title": "Why we collect it",
+    "why_body": "Only to run the wall: show prayer requests, count how many people prayed, prevent duplicate posts or spam (via a content filter that runs 100% on our own server, see below), and to let you identify and delete your own requests.",
+    "moderation_title": "Content moderation",
+    "moderation_body": "The profanity/spam filter is fully local: it runs on our own server against a wordlist, without sending your text to any external AI service or third party. Your prayer never leaves our infrastructure to be \"reviewed\" by anyone else.",
+    "sharing_title": "Who we share your data with",
+    "sharing_body": "No one. We don't use analytics, we don't use advertising, there are no third-party trackers on this site. The only external provider is our hosting (Railway), which hosts our database and application — it never accesses your data for its own purposes.",
+    "deletion_title": "What happens when you delete something",
+    "deletion_body": "When you delete an individual prayer request, or delete your account entirely, the record is NOT physically erased from the database: it's archived and anonymized. We remove anything that could identify you (name, visitor cookie, account link), but we keep the prayer text itself, anonymously, with nothing that could trace it back to you, for aggregate research into the Christian community's prayer patterns. An archived request never appears on the wall or anywhere public again.",
+    "rights_title": "Your rights",
+    "rights_body": "You can delete any of your own requests at any time (we verify it's yours via your session or visitor cookie — we never trust what the request itself claims). You can delete your entire account from your account page, which automatically anonymizes all your requests as described above.",
+    "cookies_title": "Cookies",
+    "cookies_body": "We use a single first-party cookie (\"praywall_visitor\", technical, non-tracking, lasts 1 year) and, if you have an account, a session cookie to keep you signed in. No advertising or third-party cookies.",
+    "security_title": "Security",
+    "security_body": "Hashed passwords, HTTPS, browser security headers (CSP, HSTS), and rate limits to prevent automated abuse.",
+    "changes_title": "Changes to this policy",
+    "changes_body": "If we make significant changes to this policy, we'll indicate it by updating the date on this page.",
+    "contact_title": "Contact",
+    "contact_body": "Praywall is an open-source project by Herald-OSS. You can reach us or review the code through our repository."
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "updated": "Last updated: {date}",
+    "intro": "Praywall is a Christian prayer wall, 100% free, non-profit, and maintained by volunteers. By using it, you agree to these simple terms.",
+    "service_title": "What this service is",
+    "service_body": "A space to ask for prayer and intercede for others. It's not a commercial service, has no ads or paid plans, and isn't meant to replace professional medical, legal, or pastoral advice.",
+    "conduct_title": "Acceptable use",
+    "conduct_body": "Don't post offensive content, spam, or information that identifies or exposes another person without their consent. We run an automatic content filter, but you're ultimately responsible for what you post.",
+    "content_title": "Your content",
+    "content_body": "By posting a request, you agree that — even if you delete it or delete your account — the text may be kept anonymously for aggregate community research, as described in our privacy policy. It's never republished or shown publicly again once deleted.",
+    "noWarranty_title": "No warranty",
+    "noWarranty_body": "The service is provided \"as is\", maintained by volunteers in their spare time. We don't guarantee continuous availability or error-free operation.",
+    "accounts_title": "Accounts",
+    "accounts_body": "You're responsible for keeping your password secure. We may suspend accounts that abuse the service or violate these terms.",
+    "openSource_title": "Open source",
+    "openSource_body": "Praywall is open-source software, published by Herald-OSS. You can review, audit, or contribute to the code in our repository.",
+    "changes_title": "Changes to these terms",
+    "changes_body": "We may update these terms occasionally; significant changes will be reflected with a new date on this page."
   }
 }

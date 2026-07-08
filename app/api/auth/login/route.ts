@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { user } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { copySetCookies } from "@/lib/auth-cookies";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,13 +35,18 @@ export async function POST(request: NextRequest) {
     const fakeEmail = `${username.toLowerCase()}@praywall.local`;
     const headersList = await headers();
 
-    const result = await auth.api.signInEmail({
+    // asResponse:true — see comment in signup/route.ts: without it the
+    // session Set-Cookie header is silently dropped.
+    const authResponse = await auth.api.signInEmail({
       body: {
         email: fakeEmail,
         password,
       },
       headers: headersList,
+      asResponse: true,
     });
+
+    const result = authResponse.ok ? await authResponse.json() : null;
 
     if (!result?.user) {
       return NextResponse.json(
@@ -49,7 +55,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       user: {
         id: result.user.id,
         username: users[0].username,
@@ -57,6 +63,8 @@ export async function POST(request: NextRequest) {
       },
       token: result.token,
     });
+    copySetCookies(authResponse, response);
+    return response;
   } catch {
     return NextResponse.json(
       { error: "Invalid username or password" },

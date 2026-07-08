@@ -17,14 +17,17 @@ export function UserNav() {
   if (isLoggedIn && user) {
     return (
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2">
+        <Link
+          href="/account"
+          className="flex items-center gap-2 rounded-lg transition-colors duration-300 hover:text-foreground"
+        >
           <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-mono font-semibold">
             {user.name.charAt(0).toUpperCase()}
           </div>
           <span className="font-mono text-xs tracking-[0.1em] text-subtle hidden sm:inline">
             @{user.username}
           </span>
-        </div>
+        </Link>
         <button
           onClick={() => signOut()}
           className="h-10 w-10 rounded-lg border border-border flex items-center justify-center text-subtle hover:text-foreground hover:border-muted-foreground/30 transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"

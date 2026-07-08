@@ -82,6 +82,10 @@ export const prayers = pgTable("prayers", {
   answeredAt: timestamp("answered_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   clientRequestId: text("client_request_id").unique(),
+  // NULL = visible en el muro. NOT NULL = archivada (borrada por el dueño o
+  // por borrado de cuenta): displayName/visitorId/userId se limpian, pero
+  // text/category/intercessorCount se conservan para estudio agregado.
+  archivedAt: timestamp("archived_at"),
 });
 
 export const intercessions = pgTable(

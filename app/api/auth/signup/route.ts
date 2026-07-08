@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { containsProfanity, moderateText } from "@/lib/moderation";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { copySetCookies } from "@/lib/auth-cookies";
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
@@ -89,14 +90,21 @@ export async function POST(request: NextRequest) {
     const fakeEmail = `${username.toLowerCase()}@praywall.local`;
     const headersList = await headers();
 
-    const result = await auth.api.signUpEmail({
+    // asResponse:true is required to get the Set-Cookie header Better-Auth
+    // wants to set for the new session — without it, the session cookie is
+    // silently dropped and the browser never actually ends up logged in
+    // server-side (session-based checks would always see no session).
+    const authResponse = await auth.api.signUpEmail({
       body: {
         email: fakeEmail,
         password,
         name: displayName.trim().slice(0, 30),
       },
       headers: headersList,
+      asResponse: true,
     });
+
+    const result = authResponse.ok ? await authResponse.json() : null;
 
     if (!result?.user) {
       return NextResponse.json(
@@ -120,7 +128,7 @@ export async function POST(request: NextRequest) {
         .where(eq(prayers.visitorId, visitorId));
     }
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         user: {
           id: result.user.id,
@@ -131,6 +139,8 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
+    copySetCookies(authResponse, response);
+    return response;
   } catch (error) {
     console.error("Signup failed:", error);
     return NextResponse.json(

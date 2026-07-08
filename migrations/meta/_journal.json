@@ -29,6 +29,13 @@
       "when": 1783402088263,
       "tag": "0003_magical_grandmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783510821000,
+      "tag": "0004_blue_goblin_queen",
+      "breakpoints": true
     }
   ]
 }

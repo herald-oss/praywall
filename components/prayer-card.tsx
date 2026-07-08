@@ -5,13 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { HandHeart } from "lucide-react";
 import { useState, useCallback } from "react";
-import type { Prayer } from "@/lib/db/schema";
+import type { PublicPrayer } from "@/lib/prayers/serialize";
 import { IntercessorCount } from "./intercessor-count";
 import { PraySuccessDialog } from "./pray-success-dialog";
-
-type PrayerWithUser = Omit<Prayer, "clientRequestId"> & {
-  userName: string | null;
-};
+import { Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 function getTimeAgo(date: Date, locale: string): string {
   const now = new Date();
@@ -45,12 +43,19 @@ function getInitials(name: string | null, isAnonymous: boolean): string {
   return name.charAt(0).toUpperCase();
 }
 
-export function PrayerCard({ prayer }: { prayer: PrayerWithUser }) {
+export function PrayerCard({
+  prayer,
+  onDeleted,
+}: {
+  prayer: PublicPrayer;
+  onDeleted?: (id: string) => void;
+}) {
   const t = useTranslations();
   const [count, setCount] = useState(prayer.intercessorCount ?? 0);
   const [hasPrayed, setHasPrayed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPraySuccess, setShowPraySuccess] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handlePray = useCallback(async () => {
     if (hasPrayed || isSubmitting) return;
@@ -73,6 +78,28 @@ export function PrayerCard({ prayer }: { prayer: PrayerWithUser }) {
     }
   }, [hasPrayed, isSubmitting, prayer.id, t]);
 
+  const handleDelete = useCallback(async () => {
+    if (isDeleting) return;
+    if (!window.confirm(t("wall.delete_confirm"))) return;
+    setIsDeleting(true);
+
+    try {
+      const res = await fetch(`/api/prayers/${prayer.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok || res.status === 404) {
+        toast.success(t("wall.delete_success"));
+        onDeleted?.(prayer.id);
+      } else {
+        toast.error(t("wall.delete_error"));
+      }
+    } catch {
+      toast.error(t("wall.delete_error"));
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [isDeleting, onDeleted, prayer.id, t]);
+
   function getButtonText(): string {
     if (hasPrayed) return t("wall.you_prayed");
     if (count === 0) return t("wall.be_first");
@@ -90,7 +117,7 @@ export function PrayerCard({ prayer }: { prayer: PrayerWithUser }) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
             <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-mono font-semibold ${getAvatarColor(prayer.userId ?? prayer.id)}`}
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-mono font-semibold ${getAvatarColor(prayer.id)}`}
             >
               {getInitials(prayer.displayName ?? prayer.userName, prayer.isAnonymous ?? false)}
             </div>
@@ -107,6 +134,17 @@ export function PrayerCard({ prayer }: { prayer: PrayerWithUser }) {
             <span className="font-mono text-xs tracking-[0.1em] text-subtle">
               {getTimeAgo(new Date(prayer.createdAt), "es")}
             </span>
+            {prayer.canManage && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                aria-label={t("wall.delete")}
+                className="text-subtle hover:text-destructive transition-colors duration-300 disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         </div>
 

@@ -7,22 +7,10 @@ import { PrayerCard } from "@/components/prayer-card";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { prayers, user } from "@/lib/db/schema";
-import { eq, asc } from "drizzle-orm";
-
-type FeaturedPrayer = {
-  id: string;
-  text: string;
-  displayName: string | null;
-  userId: string | null;
-  visitorId: string | null;
-  isAnonymous: boolean | null;
-  category: string | null;
-  intercessorCount: number | null;
-  goalReached: boolean | null;
-  answeredAt: Date | null;
-  createdAt: Date;
-  userName: string | null;
-};
+import { and, asc, eq, isNull } from "drizzle-orm";
+import { cookies, headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { toPublicPrayer, type PublicPrayer } from "@/lib/prayers/serialize";
 
 export default async function HomePage({
   params,
@@ -49,19 +37,25 @@ export default async function HomePage({
     })
     .from(prayers)
     .leftJoin(user, eq(prayers.userId, user.id))
-    .where(eq(prayers.intercessorCount, 0))
+    .where(and(eq(prayers.intercessorCount, 0), isNull(prayers.archivedAt)))
     .orderBy(asc(prayers.createdAt))
     .limit(5);
 
-  const featured: FeaturedPrayer | null =
-    candidates.length > 0
-      ? candidates[Math.floor(Math.random() * candidates.length)]
-      : null;
+  let featured: PublicPrayer | null = null;
+  if (candidates.length > 0) {
+    const session = await auth.api.getSession({ headers: await headers() });
+    const visitorId = (await cookies()).get("praywall_visitor")?.value ?? null;
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    featured = toPublicPrayer(pick, {
+      userId: session?.user?.id ?? null,
+      visitorId,
+    });
+  }
 
   return <HomeContent featured={featured} />;
 }
 
-function HomeContent({ featured }: { featured: FeaturedPrayer | null }) {
+function HomeContent({ featured }: { featured: PublicPrayer | null }) {
   const t = useTranslations();
 
   return (

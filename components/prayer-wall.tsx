@@ -3,16 +3,16 @@
 import { useTranslations } from "next-intl";
 import { PrayerCard } from "./prayer-card";
 import { useEffect, useState, useCallback } from "react";
-import type { Prayer } from "@/lib/db/schema";
-
-type PrayerWithUser = Prayer & {
-  userName: string | null;
-};
+import type { PublicPrayer } from "@/lib/prayers/serialize";
 
 export function PrayerWall() {
   const t = useTranslations("wall");
-  const [prayers, setPrayers] = useState<PrayerWithUser[]>([]);
+  const [prayers, setPrayers] = useState<PublicPrayer[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleDeleted = useCallback((id: string) => {
+    setPrayers((prev) => prev.filter((p) => p.id !== id));
+  }, []);
 
   const fetchPrayers = useCallback(async () => {
     try {
@@ -36,12 +36,19 @@ export function PrayerWall() {
 
     eventSource.onmessage = (event) => {
       try {
-        const newPrayer = JSON.parse(event.data) as PrayerWithUser;
+        const newPrayer = JSON.parse(event.data) as PublicPrayer;
         setPrayers((prev) => {
-          // Update existing prayer or prepend new one
-          const exists = prev.find((p) => p.id === newPrayer.id);
-          if (exists) {
-            return prev.map((p) => (p.id === newPrayer.id ? newPrayer : p));
+          // Update existing prayer or prepend new one. The SSE broadcast is
+          // always anonymized (canManage:false) — never let it downgrade a
+          // card we already know is ours from an authoritative source
+          // (the initial GET or our own POST response).
+          const existing = prev.find((p) => p.id === newPrayer.id);
+          if (existing) {
+            const merged = {
+              ...newPrayer,
+              canManage: existing.canManage || newPrayer.canManage,
+            };
+            return prev.map((p) => (p.id === newPrayer.id ? merged : p));
           }
           return [newPrayer, ...prev];
         });
@@ -90,7 +97,7 @@ export function PrayerWall() {
           key={prayer.id}
           className="mb-4 break-inside-avoid animate-in fade-in slide-in-from-top-2 duration-500"
         >
-          <PrayerCard prayer={prayer} />
+          <PrayerCard prayer={prayer} onDeleted={handleDeleted} />
         </div>
       ))}
     </div>

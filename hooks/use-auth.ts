@@ -111,5 +111,21 @@ export function useAuth() {
     notify();
   }, []);
 
-  return { ...state, signUp, signIn, signOut };
+  const deleteAccount = useCallback(async (password: string) => {
+    const res = await fetch("/api/auth/delete-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.message || data?.error || "Failed to delete account");
+    }
+
+    globalUser = null;
+    notify();
+  }, []);
+
+  return { ...state, signUp, signIn, signOut, deleteAccount };
 }

@@ -23,6 +23,19 @@ export async function POST(request: NextRequest) {
 
     const visitorId = getVisitorId(request);
 
+    const [prayer] = await db
+      .select({ archivedAt: prayers.archivedAt })
+      .from(prayers)
+      .where(eq(prayers.id, prayerId))
+      .limit(1);
+
+    if (!prayer || prayer.archivedAt != null) {
+      return NextResponse.json(
+        { error: "Prayer not found" },
+        { status: 404 }
+      );
+    }
+
     // Insert intercession (unique constraint prevents duplicates)
     await db.insert(intercessions).values({
       prayerId,
@@ -49,6 +62,7 @@ export async function POST(request: NextRequest) {
       response.cookies.set("praywall_visitor", visitorId, {
         httpOnly: true,
         sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
         maxAge: 60 * 60 * 24 * 365, // 1 year
         path: "/",
       });

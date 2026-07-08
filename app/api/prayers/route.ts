@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { prayers, user } from "@/lib/db/schema";
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, isNull } from "drizzle-orm";
+import { headers } from "next/headers";
 import { notifySSEClients } from "../prayers/stream/route";
 import { containsProfanity, moderateText } from "@/lib/moderation";
 import { PRAYER_MAX_CHARS } from "@/lib/constants";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { auth } from "@/lib/auth";
+import { toPublicPrayer, toPublicPrayers } from "@/lib/prayers/serialize";
 
 const PRAYER_CATEGORIES = [
   "general",
@@ -16,13 +19,17 @@ const PRAYER_CATEGORIES = [
   "gratitude",
 ];
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    const visitorId = request.cookies.get("praywall_visitor")?.value ?? null;
+
     const results = await db
       .select({
         id: prayers.id,
         text: prayers.text,
         userId: prayers.userId,
+        visitorId: prayers.visitorId,
         isAnonymous: prayers.isAnonymous,
         category: prayers.category,
         displayName: prayers.displayName,
@@ -34,10 +41,16 @@ export async function GET() {
       })
       .from(prayers)
       .leftJoin(user, eq(prayers.userId, user.id))
+      .where(isNull(prayers.archivedAt))
       .orderBy(asc(prayers.intercessorCount), desc(prayers.createdAt))
       .limit(50);
 
-    return NextResponse.json(results);
+    const publicResults = toPublicPrayers(results, {
+      userId: session?.user?.id ?? null,
+      visitorId,
+    });
+
+    return NextResponse.json(publicResults);
   } catch (error) {
     console.error("Failed to fetch prayers:", error);
     return NextResponse.json(
@@ -136,19 +149,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Notify SSE clients only for genuinely new prayers
+    // Notify SSE clients only for genuinely new prayers. Broadcast is
+    // anonymous to every connected client — canManage is always false here,
+    // never the author's own identity (that only goes in the direct response
+    // below).
     if (!isDuplicate) {
-      const prayerWithUser = { ...newPrayer, userName: null };
-      notifySSEClients(prayerWithUser);
+      notifySSEClients(
+        toPublicPrayer(
+          { ...newPrayer, userName: null },
+          { userId: null, visitorId: null }
+        )
+      );
     }
 
-    const response = NextResponse.json(newPrayer, { status: 201 });
+    const response = NextResponse.json(
+      toPublicPrayer(
+        { ...newPrayer, userName: null },
+        { userId: newPrayer.userId, visitorId }
+      ),
+      { status: 201 }
+    );
 
     // Set visitor cookie if not present
     if (!existingVisitorId) {
       response.cookies.set("praywall_visitor", visitorId, {
         httpOnly: true,
         sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
         maxAge: 60 * 60 * 24 * 365,
         path: "/",
       });

@@ -1,11 +1,10 @@
-import type { Prayer } from "@/lib/db/schema";
+import type { PublicPrayer } from "@/lib/prayers/serialize";
 
-type PrayerWithUser = Omit<Prayer, "clientRequestId"> & { userName: string | null };
-type SSEClient = (data: PrayerWithUser) => void;
+type SSEClient = (data: PublicPrayer) => void;
 
 const clients = new Set<SSEClient>();
 
-export function notifySSEClients(prayer: PrayerWithUser) {
+export function notifySSEClients(prayer: PublicPrayer) {
   clients.forEach((client) => client(prayer));
 }
 
