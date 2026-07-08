@@ -51,3 +51,17 @@ export const ES_PROFANITY_TERMS: string[] = [
   "mierda",
   "mierdas",
 ];
+
+// Frases de burla/spam conocidas — se matchean como frase EXACTA (con
+// boundary al inicio Y al final), no como raíz. A diferencia de
+// ES_PROFANITY_TERMS, aquí la raíz de la frase ("mamar") es ambigua por sí
+// sola (amamantar a un bebé es un uso legítimo y común en una oración de
+// familia), así que solo se bloquea la frase completa de burla, nunca la
+// palabra suelta.
+export const ES_MOCKERY_PHRASES: string[] = [
+  "no mames",
+  "no mamen",
+  "no mamés",
+  "ptm",
+  "wtf",
+];

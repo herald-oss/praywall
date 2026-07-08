@@ -5,7 +5,7 @@ import {
   englishDataset,
   englishRecommendedTransformers,
 } from "obscenity";
-import { ES_PROFANITY_TERMS } from "./moderation-wordlist";
+import { ES_PROFANITY_TERMS, ES_MOCKERY_PHRASES } from "./moderation-wordlist";
 import { PRAYER_MAX_CHARS } from "./constants";
 
 export { PRAYER_MAX_CHARS };
@@ -36,6 +36,15 @@ for (const term of ES_PROFANITY_TERMS) {
     // word characters, so a trailing `|` would let suffix bypasses like
     // "puta123" or "puta_" slip through a whole-word `|term|` pattern.
     phrase.setMetadata({ originalWord: term }).addPattern(pattern`|${term}`)
+  );
+}
+
+for (const phrase of ES_MOCKERY_PHRASES) {
+  // Exact phrase, both boundaries: unlike single-word terms, these aren't
+  // conjugated, so there's no inflection to catch by leaving the end open —
+  // and the root word alone (e.g. "mamar") is often legitimate.
+  dataset.addPhrase((p) =>
+    p.setMetadata({ originalWord: phrase }).addPattern(pattern`|${phrase}|`)
   );
 }
 
