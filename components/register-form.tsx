@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Check, X } from "lucide-react";
 import toast from "react-hot-toast";
+import { codeOf, errorMessageKey } from "@/lib/errors";
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
@@ -69,9 +70,7 @@ export function RegisterForm({
       }
       onSuccess?.();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("auth.error")
-      );
+      toast.error(t(errorMessageKey(codeOf(error))));
     } finally {
       setIsSubmitting(false);
     }

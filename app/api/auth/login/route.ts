@@ -1,74 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { user } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
 import { copySetCookies } from "@/lib/auth-cookies";
+import { LIMITS } from "@/lib/config";
+import { readJson } from "@/lib/http/body";
+import { getClientIp } from "@/lib/http/client-ip";
+import { errorResponse, HttpError } from "@/lib/http/errors";
+import { assertSameOrigin } from "@/lib/http/origin";
+import { enforceRateLimit } from "@/lib/http/rate";
+import { loginSchema, parseInput } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { username, password } = body;
+    assertSameOrigin(request);
+    // Better-Auth's own rate limiter doesn't apply to server-side auth.api
+    // calls, so brute-force protection lives here: per IP and per username.
+    enforceRateLimit(`login:ip:${getClientIp(request)}`, LIMITS.loginPerIp);
 
-    if (!username || !password) {
-      return NextResponse.json(
-        { error: "Username and password are required" },
-        { status: 400 }
-      );
-    }
+    const { username, password } = parseInput(loginSchema, await readJson(request));
+    const normalized = username.trim().toLowerCase();
+    enforceRateLimit(`login:user:${normalized}`, LIMITS.loginPerUsername);
 
-    // Look up the user by username to get the fake email
-    const users = await db
-      .select({ id: user.id, username: user.username, name: user.name })
-      .from(user)
-      .where(eq(user.username, username.toLowerCase()))
-      .limit(1);
-
-    if (users.length === 0) {
-      return NextResponse.json(
-        { error: "Invalid username or password" },
-        { status: 401 }
-      );
-    }
-
-    const fakeEmail = `${username.toLowerCase()}@praywall.local`;
-    const headersList = await headers();
-
-    // asResponse:true — see comment in signup/route.ts: without it the
-    // session Set-Cookie header is silently dropped.
     const authResponse = await auth.api.signInEmail({
-      body: {
-        email: fakeEmail,
-        password,
-      },
-      headers: headersList,
+      body: { email: `${normalized}@praywall.local`, password },
+      headers: request.headers,
+      // Without asResponse the session Set-Cookie header is dropped.
       asResponse: true,
     });
+    if (!authResponse.ok) throw new HttpError(401, "invalid_credentials");
 
-    const result = authResponse.ok ? await authResponse.json() : null;
+    const result = (await authResponse.json()) as {
+      user?: { id: string; name: string; username?: string | null };
+    };
+    if (!result.user) throw new HttpError(401, "invalid_credentials");
 
-    if (!result?.user) {
-      return NextResponse.json(
-        { error: "Invalid username or password" },
-        { status: 401 }
-      );
-    }
-
+    // The session token stays in the httpOnly cookie — never in the body.
     const response = NextResponse.json({
       user: {
         id: result.user.id,
-        username: users[0].username,
-        name: users[0].name,
+        username: result.user.username ?? normalized,
+        name: result.user.name,
       },
-      token: result.token,
     });
     copySetCookies(authResponse, response);
     return response;
-  } catch {
-    return NextResponse.json(
-      { error: "Invalid username or password" },
-      { status: 401 }
-    );
+  } catch (error) {
+    return errorResponse(error, "Login failed");
   }
 }

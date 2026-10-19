@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { user } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
-// Better-Auth's native session endpoint is /api/auth/get-session, not
-// /api/auth/session — this wrapper exists because the client expects
-// /api/auth/session and because `username` isn't a Better-Auth
-// additionalField, so it never comes back from the native endpoint (same
-// reason signup/login re-query it manually instead of trusting the raw
-// Better-Auth response).
+// Better-Auth's native session endpoint is blocked by the allowlist in
+// app/api/auth/[...all]; this is the one the client uses. It returns only
+// what the UI needs.
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
 
@@ -18,17 +12,11 @@ export async function GET() {
     return NextResponse.json({ user: null });
   }
 
-  const [row] = await db
-    .select({ username: user.username, name: user.name })
-    .from(user)
-    .where(eq(user.id, session.user.id))
-    .limit(1);
-
   return NextResponse.json({
     user: {
       id: session.user.id,
-      username: row?.username ?? "",
-      name: row?.name ?? session.user.name,
+      username: session.user.username ?? "",
+      name: session.user.name,
     },
   });
 }

@@ -171,5 +171,21 @@
     "openSource_body": "Praywall es software de código abierto, publicado por Herald-OSS. Puedes revisar, auditar o contribuir al código en nuestro repositorio.",
     "changes_title": "Cambios a estos términos",
     "changes_body": "Podemos actualizar estos términos ocasionalmente; los cambios importantes se reflejarán con una nueva fecha en esta página."
+  },
+  "errors": {
+    "generic": "Hubo un error. Intenta de nuevo.",
+    "network": "No hay conexión. Revisa tu internet e intenta de nuevo.",
+    "invalid_credentials": "Usuario o contraseña incorrectos.",
+    "invalid_password": "La contraseña no es correcta.",
+    "username_taken": "Ese nombre de usuario ya está en uso.",
+    "name_required": "Escribe tu nombre.",
+    "rate_limit": "Demasiados intentos. Espera un momento e intenta de nuevo.",
+    "inappropriate_content": "Contiene lenguaje inapropiado. Por favor edítalo.",
+    "spam": "Parece spam (enlaces o texto repetido). Quítalo e intenta de nuevo.",
+    "too_long": "Es demasiado largo.",
+    "empty": "No puede estar vacío.",
+    "invalid_input": "Revisa los datos e intenta de nuevo.",
+    "not_found": "Esta petición ya no está disponible.",
+    "sign_out_failed": "No se pudo cerrar sesión. Intenta de nuevo."
   }
 }

@@ -6,6 +6,7 @@ import { AuthDialog } from "@/components/auth-dialog";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export function UserNav() {
   const t = useTranslations();
@@ -29,7 +30,9 @@ export function UserNav() {
           </span>
         </Link>
         <button
-          onClick={() => signOut()}
+          onClick={() =>
+            signOut().catch(() => toast.error(t("errors.sign_out_failed")))
+          }
           className="h-10 w-10 rounded-lg border border-border flex items-center justify-center text-subtle hover:text-foreground hover:border-muted-foreground/30 transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           aria-label={t("auth.sign_out")}
         >

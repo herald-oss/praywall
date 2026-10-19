@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { ApiError, readErrorCode } from "@/lib/errors";
 
 type AuthUser = {
   id: string;
@@ -21,6 +22,19 @@ const listeners = new Set<() => void>();
 
 function notify() {
   listeners.forEach((fn) => fn());
+}
+
+function setGlobalUser(user: AuthUser | null) {
+  globalUser = user;
+  notify();
+}
+
+async function postJson(url: string, body: unknown): Promise<Response> {
+  return fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 }
 
 export function useAuth() {
@@ -56,6 +70,8 @@ export function useAuth() {
           notify();
         })
         .catch(() => notify());
+    } else {
+      update();
     }
 
     return () => {
@@ -65,67 +81,41 @@ export function useAuth() {
 
   const signUp = useCallback(
     async (username: string, password: string, displayName: string) => {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, displayName }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to sign up");
-      }
-
+      const res = await postJson("/api/auth/signup", { username, password, displayName });
+      if (!res.ok) throw new ApiError(await readErrorCode(res));
       const data = await res.json();
-      globalUser = data.user;
-      notify();
+      setGlobalUser(data.user);
       return data;
     },
     []
   );
 
-  const signIn = useCallback(
-    async (username: string, password: string) => {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+  const signIn = useCallback(async (username: string, password: string) => {
+    const res = await postJson("/api/auth/login", { username, password });
+    if (!res.ok) throw new ApiError(await readErrorCode(res));
+    const data = await res.json();
+    setGlobalUser(data.user);
+    return data;
+  }, []);
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Invalid credentials");
-      }
-
-      const data = await res.json();
-      globalUser = data.user;
-      notify();
-      return data;
-    },
-    []
-  );
-
+  // Only clears local state once the server confirms the session is gone —
+  // otherwise the UI would say "signed out" while the cookie still works
+  // (a real problem on shared devices).
   const signOut = useCallback(async () => {
-    await fetch("/api/auth/sign-out", { method: "POST" });
-    globalUser = null;
-    notify();
+    const res = await postJson("/api/auth/sign-out", {});
+    if (!res.ok) throw new ApiError("sign_out_failed");
+    setGlobalUser(null);
   }, []);
 
   const deleteAccount = useCallback(async (password: string) => {
-    const res = await fetch("/api/auth/delete-user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      throw new Error(data?.message || data?.error || "Failed to delete account");
-    }
-
-    globalUser = null;
-    notify();
+    const res = await postJson("/api/auth/delete-user", { password });
+    if (!res.ok) throw new ApiError(await readErrorCode(res));
+    setGlobalUser(null);
   }, []);
 
-  return { ...state, signUp, signIn, signOut, deleteAccount };
+  const updateUser = useCallback((patch: Partial<AuthUser>) => {
+    if (globalUser) setGlobalUser({ ...globalUser, ...patch });
+  }, []);
+
+  return { ...state, signUp, signIn, signOut, deleteAccount, updateUser };
 }

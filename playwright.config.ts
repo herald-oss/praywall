@@ -36,6 +36,9 @@ export default defineConfig({
       BETTER_AUTH_URL: baseURL,
       NEXT_PUBLIC_APP_URL: baseURL,
       PORT: String(PORT),
+      // A second production domain, to prove multi-domain origins work.
+      BETTER_AUTH_TRUSTED_ORIGINS: "https://unosporotros.test",
+      TRUSTED_IP_HEADER: "x-real-ip",
     },
   },
 });

@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { codeOf, errorMessageKey } from "@/lib/errors";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -94,8 +95,11 @@ export function AccountPageContent() {
       toast.success(t("account.delete_success"));
       router.push("/");
     } catch (error) {
+      const code = codeOf(error);
       toast.error(
-        error instanceof Error ? error.message : t("account.delete_error")
+        code === "invalid_password" || code === "generic"
+          ? t("account.delete_error")
+          : t(errorMessageKey(code))
       );
     } finally {
       setIsDeleting(false);
