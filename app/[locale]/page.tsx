@@ -5,12 +5,10 @@ import { setRequestLocale } from "next-intl/server";
 import { PrayerWall } from "@/components/prayer-wall";
 import { PrayerCard } from "@/components/prayer-card";
 import Link from "next/link";
-import { db } from "@/lib/db";
-import { prayers, user } from "@/lib/db/schema";
-import { and, asc, eq, isNull } from "drizzle-orm";
-import { cookies, headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { cookies } from "next/headers";
+import { pickFeaturedPrayer } from "@/lib/prayers/queries";
 import { toPublicPrayer, type PublicPrayer } from "@/lib/prayers/serialize";
+import { getRequester } from "@/lib/requester";
 
 export default async function HomePage({
   params,
@@ -25,40 +23,12 @@ export default async function HomePage({
   return <HomeContent featured={featured} />;
 }
 
-// Picks one of the 5 oldest prayers nobody has prayed for yet. Kept outside
-// the component so the random pick isn't an impure call during render.
+// Kept outside the component so the random pick isn't an impure call
+// during render.
 async function loadFeaturedPrayer(): Promise<PublicPrayer | null> {
-  const candidates = await db
-    .select({
-      id: prayers.id,
-      text: prayers.text,
-      displayName: prayers.displayName,
-      userId: prayers.userId,
-      visitorId: prayers.visitorId,
-      isAnonymous: prayers.isAnonymous,
-      category: prayers.category,
-      intercessorCount: prayers.intercessorCount,
-      goalReached: prayers.goalReached,
-      answeredAt: prayers.answeredAt,
-      testimony: prayers.testimony,
-      createdAt: prayers.createdAt,
-      userName: user.name,
-    })
-    .from(prayers)
-    .leftJoin(user, eq(prayers.userId, user.id))
-    .where(and(eq(prayers.intercessorCount, 0), isNull(prayers.archivedAt)))
-    .orderBy(asc(prayers.createdAt))
-    .limit(5);
-
-  if (candidates.length === 0) return null;
-
-  const session = await auth.api.getSession({ headers: await headers() });
-  const visitorId = (await cookies()).get("praywall_visitor")?.value ?? null;
-  const pick = candidates[Math.floor(Math.random() * candidates.length)];
-  return toPublicPrayer(pick, {
-    userId: session?.user?.id ?? null,
-    visitorId,
-  });
+  const requester = await getRequester(await cookies());
+  const pick = await pickFeaturedPrayer(requester);
+  return pick ? toPublicPrayer(pick, requester) : null;
 }
 
 function HomeContent({ featured }: { featured: PublicPrayer | null }) {

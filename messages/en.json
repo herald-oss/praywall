@@ -23,7 +23,9 @@
     "delete": "Delete",
     "delete_confirm": "Delete this prayer request? It's removed from the wall; the content is kept anonymized for community study.",
     "delete_success": "Prayer request deleted.",
-    "delete_error": "Couldn't delete it. Please try again."
+    "delete_error": "Couldn't delete it. Please try again.",
+    "already_prayed": "You already prayed for this request. Thank you!",
+    "your_request": "Your request"
   },
   "form": {
     "placeholder": "What do you need prayer for today?",

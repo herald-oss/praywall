@@ -228,7 +228,6 @@ export function AccountPageContent() {
                   key={prayer.id}
                   prayer={prayer}
                   onDeleted={handleMyPrayerDeleted}
-                  initialHasPrayed
                 />
               ))}
             </div>

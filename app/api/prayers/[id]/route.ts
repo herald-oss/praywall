@@ -1,139 +1,97 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { and, eq, isNull } from "drizzle-orm";
+import { LIMITS } from "@/lib/config";
+import { PRAYER_MAX_CHARS } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { prayers, user } from "@/lib/db/schema";
-import { auth } from "@/lib/auth";
-import { checkRateLimit } from "@/lib/rate-limit";
-import { archivePrayer } from "@/lib/prayers/archive";
+import { readJson } from "@/lib/http/body";
+import { getClientIp } from "@/lib/http/client-ip";
+import { errorResponse, HttpError } from "@/lib/http/errors";
+import { assertSameOrigin } from "@/lib/http/origin";
+import { enforceRateLimit } from "@/lib/http/rate";
 import { moderateText } from "@/lib/moderation";
-import { PRAYER_MAX_CHARS } from "@/lib/constants";
-import { toPublicPrayer } from "@/lib/prayers/serialize";
+import { archivePrayer } from "@/lib/prayers/archive";
+import { isOwner, toPublicPrayer, type Requester } from "@/lib/prayers/serialize";
+import { getRequester } from "@/lib/requester";
+import { isUuid, parseInput, testimonySchema } from "@/lib/validation";
 
-// Same body for "doesn't exist" and "not yours" — never reveal whether a
-// prayer id exists to someone who isn't its owner.
-function notFound() {
-  return NextResponse.json({ error: "not_found" }, { status: 404 });
-}
+type Params = { params: Promise<{ id: string }> };
 
-// Only what's needed for the ownership check. Never trust identity sent by
-// the client (body/query) — always derive it from session/cookie.
-async function loadOwnedPrayer(
-  id: string,
-  requesterUserId: string | null,
-  requesterVisitorId: string | null
-) {
+// Same 404 for "doesn't exist", "not yours" and "malformed id" — never reveal
+// whether a prayer id exists to someone who isn't its owner.
+const notFound = () => new HttpError(404, "not_found");
+
+// Ownership comes only from the session/cookie — never from the body.
+async function loadOwnedPrayer(id: string, requester: Requester) {
+  if (!isUuid(id)) throw notFound();
   const [row] = await db
     .select({
       id: prayers.id,
       userId: prayers.userId,
       visitorId: prayers.visitorId,
-      archivedAt: prayers.archivedAt,
       answeredAt: prayers.answeredAt,
     })
     .from(prayers)
-    .where(eq(prayers.id, id))
+    .where(and(eq(prayers.id, id), isNull(prayers.archivedAt)))
     .limit(1);
-
-  if (!row || row.archivedAt != null) return null;
-
-  let owns = false;
-  if (row.userId != null) {
-    owns = requesterUserId != null && requesterUserId === row.userId;
-  } else if (row.visitorId != null) {
-    owns = requesterVisitorId != null && requesterVisitorId === row.visitorId;
-  }
-  return owns ? row : null;
+  if (!row || !isOwner(row, requester)) throw notFound();
+  return row;
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-
-  const session = await auth.api.getSession({ headers: await headers() });
-  const visitorId = request.cookies.get("praywall_visitor")?.value ?? null;
-
-  const rateLimitKey = `delete:${session?.user?.id ?? visitorId ?? "anon"}`;
-  const rateLimit = checkRateLimit(rateLimitKey, { limit: 10, windowMs: 60_000 });
-  if (!rateLimit.allowed) {
-    return NextResponse.json(
-      { error: "rate_limit" },
-      {
-        status: 429,
-        headers: { "Retry-After": String(rateLimit.retryAfterSec) },
-      }
-    );
-  }
-
-  const owned = await loadOwnedPrayer(id, session?.user?.id ?? null, visitorId);
-  if (!owned) return notFound();
-
-  const affected = await archivePrayer(id);
-  if (affected === 0) return notFound(); // race: archived by someone else meanwhile
-
-  return new NextResponse(null, { status: 204 });
+function manageKey(request: NextRequest, requester: Requester) {
+  return requester.userId ?? requester.visitorId ?? `ip:${getClientIp(request)}`;
 }
 
-// Marks the caller's own prayer as answered and stores their testimony text.
-// Idempotent: re-calling only updates the testimony text, never resets
-// answeredAt once set.
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
+export async function DELETE(request: NextRequest, { params }: Params) {
+  try {
+    assertSameOrigin(request);
+    const { id } = await params;
+    const requester = await getRequester(request.cookies);
+    enforceRateLimit(`delete:${manageKey(request, requester)}`, LIMITS.managePerRequester);
 
-  const session = await auth.api.getSession({ headers: await headers() });
-  const visitorId = request.cookies.get("praywall_visitor")?.value ?? null;
+    await loadOwnedPrayer(id, requester);
+    const affected = await archivePrayer(id);
+    if (affected === 0) throw notFound(); // archived meanwhile
 
-  const rateLimitKey = `testimony:${session?.user?.id ?? visitorId ?? "anon"}`;
-  const rateLimit = checkRateLimit(rateLimitKey, { limit: 10, windowMs: 60_000 });
-  if (!rateLimit.allowed) {
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    return errorResponse(error, "Failed to delete prayer");
+  }
+}
+
+// Marks the caller's own prayer as answered and stores their testimony.
+// Idempotent: re-calling only updates the testimony, never resets answeredAt.
+export async function PATCH(request: NextRequest, { params }: Params) {
+  try {
+    assertSameOrigin(request);
+    const { id } = await params;
+    const requester = await getRequester(request.cookies);
+    enforceRateLimit(`testimony:${manageKey(request, requester)}`, LIMITS.managePerRequester);
+
+    const { testimony } = parseInput(testimonySchema, await readJson(request));
+    const moderation = moderateText(testimony, { maxLen: PRAYER_MAX_CHARS });
+    if (!moderation.ok) throw new HttpError(400, moderation.code!);
+
+    const owned = await loadOwnedPrayer(id, requester);
+
+    const [updated] = await db
+      .update(prayers)
+      .set({
+        answeredAt: owned.answeredAt ?? new Date(),
+        testimony: testimony.trim(),
+      })
+      .where(eq(prayers.id, id))
+      .returning();
+    if (!updated) throw notFound();
+
+    const [userRow] = updated.userId
+      ? await db.select({ name: user.name }).from(user).where(eq(user.id, updated.userId)).limit(1)
+      : [null];
+
     return NextResponse.json(
-      { error: "rate_limit" },
-      {
-        status: 429,
-        headers: { "Retry-After": String(rateLimit.retryAfterSec) },
-      }
+      toPublicPrayer({ ...updated, userName: userRow?.name ?? null }, requester)
     );
+  } catch (error) {
+    return errorResponse(error, "Failed to save testimony");
   }
-
-  const body = await request.json().catch(() => null);
-  const testimony = typeof body?.testimony === "string" ? body.testimony : "";
-
-  const moderation = moderateText(testimony, { maxLen: PRAYER_MAX_CHARS });
-  if (!moderation.ok) {
-    return NextResponse.json({ error: moderation.code }, { status: 400 });
-  }
-
-  const owned = await loadOwnedPrayer(id, session?.user?.id ?? null, visitorId);
-  if (!owned) return notFound();
-
-  const [updated] = await db
-    .update(prayers)
-    .set({
-      answeredAt: owned.answeredAt ?? new Date(), // set once, kept on re-calls
-      testimony: testimony.trim(),
-    })
-    .where(eq(prayers.id, id))
-    .returning();
-
-  if (!updated) return notFound();
-
-  const [userRow] = updated.userId
-    ? await db
-        .select({ name: user.name })
-        .from(user)
-        .where(eq(user.id, updated.userId))
-        .limit(1)
-    : [null];
-
-  return NextResponse.json(
-    toPublicPrayer(
-      { ...updated, userName: userRow?.name ?? null },
-      { userId: session?.user?.id ?? null, visitorId }
-    )
-  );
 }

@@ -6,26 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { PRAYER_MAX_CHARS } from "@/lib/constants";
+import { PRAYER_CATEGORIES, PRAYER_MAX_CHARS } from "@/lib/constants";
+import { errorMessageKey, readErrorCode } from "@/lib/errors";
 import toast from "react-hot-toast";
 
 const MAX_CHARS = PRAYER_MAX_CHARS;
 
-const ERROR_KEY_MAP: Record<string, string> = {
+// Prayer-specific wording for the common codes; everything else falls back
+// to the shared translated error messages.
+const FORM_ERROR_KEYS: Record<string, string> = {
   inappropriate_content: "form.error_inappropriate",
   spam: "form.error_spam",
   rate_limit: "form.error_rate_limit",
   too_long: "form.error_too_long",
 };
 
-const CATEGORIES = [
-  "general",
-  "health",
-  "family",
-  "work",
-  "spiritual",
-  "gratitude",
-] as const;
+const CATEGORIES = PRAYER_CATEGORIES;
 
 export function NewPrayerForm({ onSuccess }: { onSuccess?: () => void }) {
   const t = useTranslations();
@@ -62,11 +58,9 @@ export function NewPrayerForm({ onSuccess }: { onSuccess?: () => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: text.trim(),
-          name: isAnonymous
-            ? null
-            : isLoggedIn && user
-              ? user.name
-              : name.trim() || null,
+          // Logged-in users always post under their account name (the
+          // server enforces it); the field is only sent for guests.
+          name: isAnonymous || (isLoggedIn && user) ? null : name.trim() || null,
           isAnonymous,
           category,
           clientRequestId: clientRequestIdRef.current,
@@ -81,13 +75,8 @@ export function NewPrayerForm({ onSuccess }: { onSuccess?: () => void }) {
         setCategory("general");
         onSuccess?.();
       } else {
-        let code: string | undefined;
-        try {
-          code = (await res.json())?.error;
-        } catch {
-          // ignore — fall through to the generic error message
-        }
-        toast.error(t((code && ERROR_KEY_MAP[code]) || "form.error"));
+        const code = await readErrorCode(res);
+        toast.error(t(FORM_ERROR_KEYS[code] ?? errorMessageKey(code)));
       }
     } catch {
       toast.error(t("form.error"));

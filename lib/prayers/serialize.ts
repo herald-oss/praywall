@@ -16,16 +16,17 @@ export type PrayerRow = Pick<
   | "answeredAt"
   | "testimony"
   | "createdAt"
-> & { userName: string | null };
+> & { userName: string | null; viewerHasPrayed?: boolean };
 
 // Forma pública: sin userId ni visitorId. canManage le dice al cliente si
 // puede archivar esta oración, sin revelar el identificador de nadie.
 export type PublicPrayer = Omit<
   PrayerRow,
-  "userId" | "visitorId" | "userName"
+  "userId" | "visitorId" | "userName" | "viewerHasPrayed"
 > & {
   userName: string | null;
   canManage: boolean;
+  viewerHasPrayed: boolean;
 };
 
 export interface Requester {
@@ -33,27 +34,33 @@ export interface Requester {
   visitorId: string | null;
 }
 
+/** True when the requester owns this prayer (account first, then cookie). */
+export function isOwner(
+  row: Pick<PrayerRow, "userId" | "visitorId">,
+  requester: Requester
+): boolean {
+  if (row.userId != null) {
+    return requester.userId != null && requester.userId === row.userId;
+  }
+  if (row.visitorId != null) {
+    return requester.visitorId != null && requester.visitorId === row.visitorId;
+  }
+  return false;
+}
+
 /**
  * Convierte una fila interna en su forma pública segura.
  * - Nunca expone userId ni visitorId.
- * - Si la oración es anónima, displayName/userName siempre viajan null
- *   (arregla la fuga de nombre real en oraciones marcadas anónimas que
- *   quedaron vinculadas a una cuenta vía signup).
+ * - Si la oración es anónima, displayName/userName siempre viajan null.
  * - canManage: true solo si el requester es el dueño verificado server-side.
+ * - viewerHasPrayed: si este requester ya oró por ella.
  */
 export function toPublicPrayer(
   row: PrayerRow,
   requester: Requester
 ): PublicPrayer {
   const isAnon = row.isAnonymous ?? true;
-
-  let canManage = false;
-  if (row.userId != null) {
-    canManage = requester.userId != null && requester.userId === row.userId;
-  } else if (row.visitorId != null) {
-    canManage =
-      requester.visitorId != null && requester.visitorId === row.visitorId;
-  }
+  const canManage = isOwner(row, requester);
 
   return {
     id: row.id,
@@ -70,6 +77,7 @@ export function toPublicPrayer(
     createdAt: row.createdAt,
     userName: isAnon ? null : row.userName,
     canManage,
+    viewerHasPrayed: row.viewerHasPrayed ?? false,
   };
 }
 

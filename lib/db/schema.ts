@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   uuid,
@@ -7,6 +8,8 @@ import {
   timestamp,
   jsonb,
   unique,
+  index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // ─── Better-Auth tables ───────────────────────────────────────────
@@ -69,26 +72,37 @@ export const verification = pgTable("verification", {
 
 // ─── App tables ───────────────────────────────────────────────────
 
-export const prayers = pgTable("prayers", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  text: text("text").notNull(),
-  displayName: text("display_name"),
-  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
-  visitorId: text("visitor_id"),
-  isAnonymous: boolean("is_anonymous").default(true),
-  category: text("category").default("general"),
-  intercessorCount: integer("intercessor_count").default(0),
-  goalReached: boolean("goal_reached").default(false),
-  answeredAt: timestamp("answered_at"),
-  // Set together with answeredAt when the owner marks a prayer as answered.
-  testimony: text("testimony"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  clientRequestId: text("client_request_id").unique(),
-  // NULL = visible en el muro. NOT NULL = archivada (borrada por el dueño o
-  // por borrado de cuenta): displayName/visitorId/userId se limpian, pero
-  // text/category/intercessorCount se conservan para estudio agregado.
-  archivedAt: timestamp("archived_at"),
-});
+export const prayers = pgTable(
+  "prayers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    text: text("text").notNull(),
+    displayName: text("display_name"),
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    visitorId: text("visitor_id"),
+    isAnonymous: boolean("is_anonymous").default(true),
+    category: text("category").default("general"),
+    intercessorCount: integer("intercessor_count").notNull().default(0),
+    goalReached: boolean("goal_reached").notNull().default(false),
+    answeredAt: timestamp("answered_at"),
+    // Set together with answeredAt when the owner marks a prayer as answered.
+    testimony: text("testimony"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    clientRequestId: text("client_request_id").unique(),
+    // NULL = visible en el muro. NOT NULL = archivada (borrada por el dueño o
+    // por borrado de cuenta): displayName/visitorId/userId se limpian, pero
+    // text/category/intercessorCount se conservan para estudio agregado.
+    archivedAt: timestamp("archived_at"),
+  },
+  (t) => [
+    // The wall: visible prayers, fewest intercessors first, newest first.
+    index("prayers_wall_idx")
+      .on(t.intercessorCount, t.createdAt.desc())
+      .where(sql`${t.archivedAt} is null`),
+    index("prayers_user_id_idx").on(t.userId),
+    index("prayers_visitor_id_idx").on(t.visitorId),
+  ]
+);
 
 export const intercessions = pgTable(
   "intercessions",
@@ -101,7 +115,15 @@ export const intercessions = pgTable(
     userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
-  (t) => [unique().on(t.prayerId, t.visitorId)]
+  (t) => [
+    unique().on(t.prayerId, t.visitorId),
+    // One intercession per account per prayer, even across devices.
+    uniqueIndex("intercessions_prayer_user_unique")
+      .on(t.prayerId, t.userId)
+      .where(sql`${t.userId} is not null`),
+    index("intercessions_visitor_created_idx").on(t.visitorId, t.createdAt),
+    index("intercessions_user_id_idx").on(t.userId),
+  ]
 );
 
 // ─── Types ────────────────────────────────────────────────────────

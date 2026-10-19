@@ -51,4 +51,9 @@ describe("toPublicPrayer", () => {
     expect(toPublicPrayer(r, { userId: null, visitorId: "visitor-a" }).canManage).toBe(true);
     expect(toPublicPrayer(r, stranger).canManage).toBe(false);
   });
+
+  it("reports whether this viewer already prayed (false by default)", () => {
+    expect(toPublicPrayer(row(), stranger).viewerHasPrayed).toBe(false);
+    expect(toPublicPrayer(row({ viewerHasPrayed: true }), stranger).viewerHasPrayed).toBe(true);
+  });
 });

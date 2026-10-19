@@ -11,6 +11,7 @@ import { IntercessorCount } from "./intercessor-count";
 import { PraySuccessDialog } from "./pray-success-dialog";
 import { Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { errorMessageKey, readErrorCode } from "@/lib/errors";
 
 function getTimeAgo(date: Date, locale: string): string {
   const now = new Date();
@@ -48,18 +49,16 @@ export function PrayerCard({
   prayer,
   onDeleted,
   onAnswered,
-  initialHasPrayed = false,
   allowTestimony = false,
 }: {
   prayer: PublicPrayer;
   onDeleted?: (id: string) => void;
   onAnswered?: (updated: PublicPrayer) => void;
-  initialHasPrayed?: boolean;
   allowTestimony?: boolean;
 }) {
   const t = useTranslations();
   const [count, setCount] = useState(prayer.intercessorCount ?? 0);
-  const [hasPrayed, setHasPrayed] = useState(initialHasPrayed);
+  const [hasPrayed, setHasPrayed] = useState(prayer.viewerHasPrayed);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPraySuccess, setShowPraySuccess] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -78,15 +77,29 @@ export function PrayerCard({
         body: JSON.stringify({ prayerId: prayer.id }),
       });
 
-      if (res.ok) {
-        setCount((c) => c + 1);
-        setHasPrayed(true);
+      if (!res.ok) {
+        toast.error(t(errorMessageKey(await readErrorCode(res))));
+        return;
+      }
+      const data = (await res.json()) as {
+        count: number;
+        alreadyPrayed: boolean;
+        ownPrayer: boolean;
+      };
+      setCount(data.count);
+      if (data.ownPrayer) return;
+      setHasPrayed(true);
+      if (data.alreadyPrayed) {
+        toast(t("wall.already_prayed"));
+      } else {
         setShowPraySuccess(true);
       }
+    } catch {
+      toast.error(t("errors.network"));
     } finally {
       setIsSubmitting(false);
     }
-  }, [hasPrayed, isSubmitting, prayer.id]);
+  }, [hasPrayed, isSubmitting, prayer.id, t]);
 
   const handleDelete = useCallback(async () => {
     if (isDeleting) return;
@@ -261,6 +274,11 @@ export function PrayerCard({
         <div className="flex items-center justify-between gap-3">
           {count > 0 && <IntercessorCount count={count} />}
 
+          {prayer.canManage ? (
+            <span className="ml-auto font-mono text-xs tracking-[0.1em] uppercase text-subtle">
+              {t("wall.your_request")}
+            </span>
+          ) : (
           <Button
             variant={hasPrayed ? "secondary" : "default"}
             size="default"
@@ -272,6 +290,7 @@ export function PrayerCard({
             <HandHeart className="h-3.5 w-3.5" />
             {getButtonText()}
           </Button>
+          )}
         </div>
       </CardContent>
       <PraySuccessDialog

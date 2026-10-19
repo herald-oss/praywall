@@ -23,7 +23,9 @@
     "delete": "Eliminar",
     "delete_confirm": "¿Eliminar esta petición? Se retira del muro; el contenido se conserva de forma anónima para estudio de la comunidad.",
     "delete_success": "Petición eliminada.",
-    "delete_error": "No se pudo eliminar. Intenta de nuevo."
+    "delete_error": "No se pudo eliminar. Intenta de nuevo.",
+    "already_prayed": "Ya habías orado por esta petición. ¡Gracias!",
+    "your_request": "Tu petición"
   },
   "form": {
     "placeholder": "¿Por qué necesitas oración hoy?",
