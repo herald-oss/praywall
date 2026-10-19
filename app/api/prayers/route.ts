@@ -6,7 +6,7 @@ import { errorResponse } from "@/lib/http/errors";
 import { assertSameOrigin } from "@/lib/http/origin";
 import { enforceRateLimit } from "@/lib/http/rate";
 import { createPrayer } from "@/lib/prayers/create";
-import { listWall } from "@/lib/prayers/queries";
+import { listVisibleByIds, listWall } from "@/lib/prayers/queries";
 import { publish } from "@/lib/realtime/broker";
 import { toPublicPrayer, toPublicPrayers } from "@/lib/prayers/serialize";
 import { getRequester } from "@/lib/requester";
@@ -20,6 +20,14 @@ export async function GET(request: NextRequest) {
     const exclude = params.get("exclude");
 
     const requester = await getRequester(request.cookies);
+
+    const ids = params.get("ids");
+    if (ids) {
+      const valid = ids.split(",").filter(isUuid).slice(0, 20);
+      const rows = await listVisibleByIds(valid, requester);
+      return NextResponse.json(toPublicPrayers(rows, requester));
+    }
+
     const rows = await listWall({
       requester,
       offset: Number.isFinite(offset) ? offset : 0,

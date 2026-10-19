@@ -250,3 +250,12 @@ test("a malformed prayer URL is a 404 page, not a server error", async ({ playwr
   const res = await (await newClient(playwright)).get("/es/prayer/not-a-uuid");
   expect(res.status()).toBe(404);
 });
+
+test("GET /api/prayers?ids= returns only those visible prayers", async ({ playwright }) => {
+  const a = await insertPrayer({ text: "Uno" });
+  const b = await insertPrayer({ text: "Dos" });
+  await testDb().query("UPDATE prayers SET archived_at = now() WHERE id = $1", [b]);
+  const res = await (await newClient(playwright)).get(`/api/prayers?ids=${a},${b},not-a-uuid`);
+  const body = await res.json();
+  expect(body.map((p: { id: string }) => p.id)).toEqual([a]);
+});

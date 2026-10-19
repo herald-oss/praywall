@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { intercessions, prayers, user } from "@/lib/db/schema";
 import type { PrayerRow, Requester } from "./serialize";
@@ -55,6 +55,19 @@ export async function listWall(opts: {
     .orderBy(prayers.intercessorCount, sql`${prayers.createdAt} desc nulls last`)
     .limit(Math.min(opts.limit ?? WALL_PAGE_SIZE, 50))
     .offset(Math.max(opts.offset ?? 0, 0));
+}
+
+/** Specific visible prayers (max 20) — used to resync cards after a stream gap. */
+export async function listVisibleByIds(
+  ids: string[],
+  requester: Requester
+): Promise<PrayerRow[]> {
+  if (ids.length === 0) return [];
+  return db
+    .select(prayerColumns(requester))
+    .from(prayers)
+    .leftJoin(user, eq(prayers.userId, user.id))
+    .where(and(inArray(prayers.id, ids.slice(0, 20)), isNull(prayers.archivedAt)));
 }
 
 export async function getVisiblePrayer(

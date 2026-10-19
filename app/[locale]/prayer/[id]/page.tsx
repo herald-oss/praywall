@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { PrayerCard } from "@/components/prayer-card";
+import { LivePrayersProvider } from "@/components/live-prayers";
 import { getVisiblePrayer } from "@/lib/prayers/queries";
 import { toPublicPrayer } from "@/lib/prayers/serialize";
 import { getRequester } from "@/lib/requester";
@@ -42,7 +43,9 @@ export default async function PrayerDetailPage({
         {locale === "es" ? "Petición de oración" : "Prayer request"}
       </h1>
 
-      <PrayerCard prayer={prayer} />
+      <LivePrayersProvider watchIds={[prayer.id]}>
+        <PrayerCard prayer={prayer} />
+      </LivePrayersProvider>
     </main>
   );
 }

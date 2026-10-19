@@ -1,9 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PrayerCard } from "./prayer-card";
-import { usePrayerStream } from "@/hooks/use-prayer-stream";
+import { useLiveState } from "./live-prayers";
 import type { PublicPrayer } from "@/lib/prayers/serialize";
 
 // Live prepends would otherwise grow the list forever on a screen left open
@@ -12,60 +12,42 @@ const MAX_ITEMS = 100;
 
 export function PrayerWall({ excludeId }: { excludeId?: string | null }) {
   const t = useTranslations("wall");
-  const [prayers, setPrayers] = useState<PublicPrayer[]>([]);
+  const live = useLiveState();
+  const [loaded, setLoaded] = useState<PublicPrayer[]>([]);
+  const [deleted, setDeleted] = useState<ReadonlySet<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const resyncKey = live?.resyncKey ?? 0;
 
   const handleDeleted = useCallback((id: string) => {
-    setPrayers((prev) => prev.filter((p) => p.id !== id));
+    setDeleted((prev) => new Set(prev).add(id));
   }, []);
 
-  const fetchPrayers = useCallback(async () => {
-    try {
-      const query = excludeId ? `?exclude=${excludeId}` : "";
-      const res = await fetch(`/api/prayers${query}`);
-      if (res.ok) setPrayers(await res.json());
-    } catch {
-      // keep what we have; the stream will resync later
-    } finally {
-      setLoading(false);
-    }
-  }, [excludeId]);
-
   useEffect(() => {
-    // Initial load from an external source (the API).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchPrayers();
-  }, [fetchPrayers]);
-
-  usePrayerStream({
-    onPrayer: (prayer) => {
-      if (prayer.id === excludeId) return;
-      setPrayers((prev) => {
-        const existing = prev.find((p) => p.id === prayer.id);
-        if (existing) {
-          // The broadcast is anonymized — never let it downgrade what we
-          // already know about our own card.
-          return prev.map((p) =>
-            p.id === prayer.id
-              ? { ...prayer, canManage: p.canManage, viewerHasPrayed: p.viewerHasPrayed, testimony: p.testimony }
-              : p
-          );
-        }
-        return [prayer, ...prev].slice(0, MAX_ITEMS);
+    let cancelled = false;
+    const query = excludeId ? `?exclude=${excludeId}` : "";
+    fetch(`/api/prayers${query}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: PublicPrayer[] | null) => {
+        if (!cancelled && data) setLoaded(data);
+      })
+      .catch(() => {
+        // keep what we have; the stream will trigger another resync
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
-    },
-    onCount: ({ id, intercessorCount, goalReached }) => {
-      setPrayers((prev) =>
-        prev.map((p) =>
-          p.id === id
-            ? { ...p, intercessorCount: Math.max(p.intercessorCount, intercessorCount), goalReached }
-            : p
-        )
-      );
-    },
-    onRemoved: handleDeleted,
-    onResync: fetchPrayers,
-  });
+    return () => {
+      cancelled = true;
+    };
+  }, [excludeId, resyncKey]);
+
+  const prayers = useMemo(() => {
+    const known = new Map(loaded.map((p) => [p.id, p]));
+    const fresh = (live?.incoming ?? []).filter((p) => !known.has(p.id));
+    return [...fresh, ...loaded]
+      .filter((p) => p.id !== excludeId && !deleted.has(p.id) && !live?.removed.has(p.id))
+      .slice(0, MAX_ITEMS);
+  }, [loaded, live, excludeId, deleted]);
 
   if (loading) {
     return (

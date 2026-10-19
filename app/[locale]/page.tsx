@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { PrayerWall } from "@/components/prayer-wall";
 import { PrayerCard } from "@/components/prayer-card";
+import { LivePrayersProvider } from "@/components/live-prayers";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { pickFeaturedPrayer } from "@/lib/prayers/queries";
@@ -35,6 +36,7 @@ function HomeContent({ featured }: { featured: PublicPrayer | null }) {
   const t = useTranslations();
 
   return (
+    <LivePrayersProvider watchIds={featured ? [featured.id] : []}>
     <main className="flex-1 flex flex-col max-w-[1440px] mx-auto w-full px-6">
       {/* Hero — 70vh, split on desktop, stacked on mobile */}
       <section className="min-h-[70vh] flex items-center">
@@ -83,8 +85,10 @@ function HomeContent({ featured }: { featured: PublicPrayer | null }) {
 
       {/* Wall */}
       <section className="pb-12">
-        <PrayerWall />
+        {/* The featured prayer is already shown above — don't repeat it. */}
+        <PrayerWall excludeId={featured?.id ?? null} />
       </section>
     </main>
+    </LivePrayersProvider>
   );
 }

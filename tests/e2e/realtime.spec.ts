@@ -28,7 +28,11 @@ test("the wall updates live across browsers and survives stream restarts", async
   // Bob prays; Alice's wall shows someone is praying, live.
   await alicePage.goto("/es");
   const aliceCard = alicePage.locator('[data-slot="card"]', { hasText: text });
+  // Shown once as the featured prayer — never repeated in the wall below.
   await expect(aliceCard).toBeVisible();
+  // The wall below has loaded and, excluding the featured prayer, is empty.
+  await expect(alicePage.getByText("Aún no hay peticiones")).toBeVisible();
+  await expect(aliceCard).toHaveCount(1);
   await bobCard.getByRole("button", { name: "Sé el primero en orar" }).click();
   await expect(aliceCard.getByText("Alguien está orando por esto")).toBeVisible();
 

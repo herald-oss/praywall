@@ -8,6 +8,7 @@ import { HandHeart, Sparkles } from "lucide-react";
 import { useState, useCallback } from "react";
 import type { PublicPrayer } from "@/lib/prayers/serialize";
 import { IntercessorCount } from "./intercessor-count";
+import { useLiveState, withLiveCount } from "./live-prayers";
 import { PraySuccessDialog } from "./pray-success-dialog";
 import { Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -46,7 +47,7 @@ function getInitials(name: string | null, isAnonymous: boolean): string {
 }
 
 export function PrayerCard({
-  prayer,
+  prayer: basePrayer,
   onDeleted,
   onAnswered,
   allowTestimony = false,
@@ -57,6 +58,8 @@ export function PrayerCard({
   allowTestimony?: boolean;
 }) {
   const t = useTranslations();
+  const live = useLiveState();
+  const prayer = withLiveCount(basePrayer, live);
   // Props carry live updates (SSE); local state only remembers what this
   // card itself just did. Counts only ever grow, so the max is always right.
   const [localCount, setLocalCount] = useState(0);
