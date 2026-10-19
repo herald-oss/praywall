@@ -46,13 +46,13 @@ export function RegisterForm({
   }, []);
 
   useEffect(() => {
-    if (username.length < 3) {
-      setUsernameStatus("idle");
-      return;
-    }
+    if (username.length < 3) return;
     const timer = setTimeout(() => checkUsername(username), 400);
     return () => clearTimeout(timer);
   }, [username, checkUsername]);
+
+  // Short usernames are always "idle" — derived instead of set in an effect.
+  const effectiveStatus = username.length < 3 ? "idle" : usernameStatus;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,7 +78,7 @@ export function RegisterForm({
   }
 
   const canSubmitRegister =
-    usernameStatus === "available" &&
+    effectiveStatus === "available" &&
     password.length >= 8 &&
     displayName.trim().length > 0;
 
@@ -111,26 +111,26 @@ export function RegisterForm({
               autoComplete="username"
               className="w-full rounded-lg border border-input bg-background pl-8 pr-10 py-2.5 text-base font-normal text-foreground placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300"
             />
-            {usernameStatus === "available" && (
+            {effectiveStatus === "available" && (
               <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
             )}
-            {usernameStatus === "taken" && (
+            {effectiveStatus === "taken" && (
               <X className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
             )}
           </div>
-          {mode === "register" && usernameStatus === "taken" && (
+          {mode === "register" && effectiveStatus === "taken" && (
             <p className="text-xs text-destructive mt-1">
               {t("auth.username_taken")}
             </p>
           )}
           {mode === "register" &&
-            usernameStatus === "invalid" &&
+            effectiveStatus === "invalid" &&
             username.length >= 3 && (
               <p className="text-xs text-destructive mt-1">
                 {t("auth.username_invalid")}
               </p>
             )}
-          {mode === "register" && usernameStatus === "available" && (
+          {mode === "register" && effectiveStatus === "available" && (
             <p className="text-xs text-green-500 mt-1">
               {t("auth.username_available")}
             </p>

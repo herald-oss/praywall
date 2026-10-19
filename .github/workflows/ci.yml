@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: praywall
+          POSTGRES_PASSWORD: praywall_dev
+          POSTGRES_DB: praywall_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U praywall"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI: "true"
+      TEST_DATABASE_URL: postgresql://praywall:praywall_dev@localhost:5432/praywall_test
+      DATABASE_URL: postgresql://praywall:praywall_dev@localhost:5432/praywall_test
+      BETTER_AUTH_SECRET: ci-only-secret-0123456789abcdef0123456789abcdef
+      BETTER_AUTH_URL: http://localhost:3100
+      NEXT_PUBLIC_APP_URL: http://localhost:3100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

@@ -20,6 +20,14 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const featured = await loadFeaturedPrayer();
+
+  return <HomeContent featured={featured} />;
+}
+
+// Picks one of the 5 oldest prayers nobody has prayed for yet. Kept outside
+// the component so the random pick isn't an impure call during render.
+async function loadFeaturedPrayer(): Promise<PublicPrayer | null> {
   const candidates = await db
     .select({
       id: prayers.id,
@@ -42,18 +50,15 @@ export default async function HomePage({
     .orderBy(asc(prayers.createdAt))
     .limit(5);
 
-  let featured: PublicPrayer | null = null;
-  if (candidates.length > 0) {
-    const session = await auth.api.getSession({ headers: await headers() });
-    const visitorId = (await cookies()).get("praywall_visitor")?.value ?? null;
-    const pick = candidates[Math.floor(Math.random() * candidates.length)];
-    featured = toPublicPrayer(pick, {
-      userId: session?.user?.id ?? null,
-      visitorId,
-    });
-  }
+  if (candidates.length === 0) return null;
 
-  return <HomeContent featured={featured} />;
+  const session = await auth.api.getSession({ headers: await headers() });
+  const visitorId = (await cookies()).get("praywall_visitor")?.value ?? null;
+  const pick = candidates[Math.floor(Math.random() * candidates.length)];
+  return toPublicPrayer(pick, {
+    userId: session?.user?.id ?? null,
+    visitorId,
+  });
 }
 
 function HomeContent({ featured }: { featured: PublicPrayer | null }) {

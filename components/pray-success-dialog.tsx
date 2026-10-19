@@ -9,7 +9,7 @@ import {
 import { Heart } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useState } from "react";
 
 function getSkipCookie(): boolean {
   if (typeof document === "undefined") return false;
@@ -27,16 +27,8 @@ export function PraySuccessDialog({
   const { isLoggedIn } = useAuth();
   const router = useRouter();
 
-  const message = useMemo(() => {
-    const messages = [
-      t("pray_success.message_1"),
-      t("pray_success.message_2"),
-      t("pray_success.message_3"),
-      t("pray_success.message_4"),
-      t("pray_success.message_5"),
-    ];
-    return messages[Math.floor(Math.random() * messages.length)];
-  }, [t]);
+  const [messageIndex] = useState(() => Math.floor(Math.random() * 5) + 1);
+  const message = t(`pray_success.message_${messageIndex}` as "pray_success.message_1");
 
   function handleContinue() {
     onOpenChange(false);

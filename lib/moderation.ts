@@ -26,9 +26,16 @@ export interface SpamResult {
   reason?: string;
 }
 
-const dataset = new DataSet<{ originalWord: string }>().addAll(
-  englishDataset
-);
+// English words that are ordinary Spanish words in a prayer wall: "negro"
+// is the color black ("mi perro negro", "un día negro"). The English dataset
+// treats it as a slur, which blocked real Spanish prayer requests.
+const ENGLISH_TERMS_ALLOWED_IN_SPANISH = new Set(["negro"]);
+
+const dataset = new DataSet<{ originalWord: string }>()
+  .addAll(englishDataset)
+  .removePhrasesIf((phrase) =>
+    ENGLISH_TERMS_ALLOWED_IN_SPANISH.has(phrase.metadata?.originalWord ?? "")
+  );
 
 for (const term of ES_PROFANITY_TERMS) {
   dataset.addPhrase((phrase) =>

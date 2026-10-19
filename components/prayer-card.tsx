@@ -86,7 +86,7 @@ export function PrayerCard({
     } finally {
       setIsSubmitting(false);
     }
-  }, [hasPrayed, isSubmitting, prayer.id, t]);
+  }, [hasPrayed, isSubmitting, prayer.id]);
 
   const handleDelete = useCallback(async () => {
     if (isDeleting) return;
