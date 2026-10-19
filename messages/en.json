@@ -121,7 +121,12 @@
     "app_name": "Praywall",
     "back": "Back",
     "time_ago": "{time} ago",
-    "just_now": "just now"
+    "just_now": "just now",
+    "close": "Close",
+    "theme_light": "Switch to light mode",
+    "theme_dark": "Switch to dark mode",
+    "language": "Language",
+    "switch_language": "Switch language to {language}"
   },
   "footer": {
     "tagline": "A free, non-profit, open-source ministry.",
@@ -189,5 +194,24 @@
     "invalid_input": "Please check what you entered and try again.",
     "not_found": "This prayer request is no longer available.",
     "sign_out_failed": "Couldn't sign out. Please try again."
+  },
+  "meta": {
+    "site_name": "Praywall",
+    "title": "Praywall — Prayer Wall",
+    "description": "A real-time prayer wall. Ask for prayer anonymously and at least 33 people will pray for you. Free, ad-free and open source."
+  },
+  "not_found": {
+    "title": "Page not found",
+    "message": "This page doesn't exist or the prayer request is no longer available.",
+    "home": "Back to the wall"
+  },
+  "error_page": {
+    "title": "Something went wrong",
+    "message": "We had trouble loading this page. Please try again in a moment.",
+    "retry": "Try again",
+    "home": "Back to the wall"
+  },
+  "prayer_page": {
+    "title": "Prayer request"
   }
 }

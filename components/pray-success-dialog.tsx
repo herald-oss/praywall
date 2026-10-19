@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Heart } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 
 function getSkipCookie(): boolean {

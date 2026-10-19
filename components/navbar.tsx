@@ -1,9 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserNav } from "@/components/user-nav";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 
 export function Navbar() {
   const t = useTranslations();
@@ -14,7 +15,7 @@ export function Navbar() {
         {/* Brand */}
         <Link
           href="/"
-          className="font-mono text-sm tracking-[0.1em] uppercase text-foreground hover:text-primary transition-colors duration-300"
+          className="font-mono text-sm tracking-[0.1em] uppercase text-foreground hover:text-primary transition-colors duration-300 truncate"
         >
           {t("common.app_name")}
         </Link>
@@ -22,6 +23,7 @@ export function Navbar() {
         {/* Right side */}
         <div className="flex items-center gap-2">
           <UserNav />
+          <LocaleSwitcher />
           <ThemeToggle />
         </div>
       </div>

@@ -3,10 +3,10 @@
 import { useTranslations } from "next-intl";
 import { RegisterForm } from "@/components/register-form";
 import { useAuth } from "@/hooks/use-auth";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
 import { Heart, BookOpen, Bell, Share2 } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 function setSkipCookie() {
   document.cookie =

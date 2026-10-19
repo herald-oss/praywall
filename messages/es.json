@@ -121,7 +121,12 @@
     "app_name": "Unos Por Otros",
     "back": "Volver",
     "time_ago": "hace {time}",
-    "just_now": "ahora mismo"
+    "just_now": "ahora mismo",
+    "close": "Cerrar",
+    "theme_light": "Cambiar a modo claro",
+    "theme_dark": "Cambiar a modo oscuro",
+    "language": "Idioma",
+    "switch_language": "Cambiar idioma a {language}"
   },
   "footer": {
     "tagline": "Un ministerio gratuito, sin fines de lucro, de código abierto.",
@@ -189,5 +194,24 @@
     "invalid_input": "Revisa los datos e intenta de nuevo.",
     "not_found": "Esta petición ya no está disponible.",
     "sign_out_failed": "No se pudo cerrar sesión. Intenta de nuevo."
+  },
+  "meta": {
+    "site_name": "Unos Por Otros",
+    "title": "Unos Por Otros — Muro de oración",
+    "description": "Un muro de oración en tiempo real. Pide oración de forma anónima y al menos 33 personas orarán por ti. Gratis, sin anuncios, de código abierto."
+  },
+  "not_found": {
+    "title": "Página no encontrada",
+    "message": "Esta página no existe o la petición ya no está disponible.",
+    "home": "Volver al muro"
+  },
+  "error_page": {
+    "title": "Algo salió mal",
+    "message": "Tuvimos un problema al cargar esta página. Intenta de nuevo en un momento.",
+    "retry": "Intentar de nuevo",
+    "home": "Volver al muro"
+  },
+  "prayer_page": {
+    "title": "Petición de oración"
   }
 }

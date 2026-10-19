@@ -37,7 +37,8 @@ export function LegalPageContent({
 }) {
   const t = useTranslations(namespace);
   const locale = useLocale();
-  const updated = new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(
+  // UTC so the server and every visitor's browser print the same day.
+  const updated = new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" }).format(
     new Date(LAST_UPDATED_ISO)
   );
 

@@ -4,8 +4,8 @@ import { useTranslations } from "next-intl";
 import { NewPrayerForm } from "@/components/new-prayer-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Heart } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 

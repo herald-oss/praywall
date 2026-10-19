@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { AuthDialog } from "@/components/auth-dialog";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import toast from "react-hot-toast";
 
 export function UserNav() {

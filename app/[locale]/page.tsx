@@ -5,7 +5,7 @@ import { setRequestLocale } from "next-intl/server";
 import { PrayerWall } from "@/components/prayer-wall";
 import { PrayerCard } from "@/components/prayer-card";
 import { LivePrayersProvider } from "@/components/live-prayers";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { cookies } from "next/headers";
 import { pickFeaturedPrayer } from "@/lib/prayers/queries";
 import { toPublicPrayer, type PublicPrayer } from "@/lib/prayers/serialize";
