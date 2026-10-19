@@ -8,8 +8,8 @@ Praywall is a real-time prayer wall where people post prayer requests and at lea
 
 - **Framework**: Next.js 16 (App Router, TypeScript strict)
 - **ORM**: Drizzle ORM with PostgreSQL
-- **Auth**: Better-Auth with anonymous plugin (self-hosted, $0)
-- **Realtime**: Server-Sent Events (SSE)
+- **Auth**: Better-Auth, username + password (self-hosted, $0). Only sign-out, delete-user and change-password are reachable natively; everything else goes through our own routes in `app/api/auth/`
+- **Realtime**: Server-Sent Events via `lib/realtime/broker.ts`
 - **UI**: shadcn/ui + Tailwind CSS v4 + Lucide React
 - **i18n**: next-intl (ES default + EN)
 - **Database**: PostgreSQL 16 (Docker local, Railway prod)
@@ -38,6 +38,12 @@ npm run db:studio
 
 # Lint
 npm run lint
+
+# Unit tests (Vitest)
+npm run test:unit
+
+# API + browser tests (Playwright, needs the praywall_test database)
+npm run test:e2e
 ```
 
 ## Project Structure
@@ -49,7 +55,10 @@ components/          → React components (prayer-card, prayer-wall, etc.)
 components/ui/       → shadcn/ui components
 lib/db/              → Drizzle schema and connection
 lib/auth.ts          → Better-Auth server config
-lib/auth-client.ts   → Better-Auth client config
+lib/http/            → Request helpers: JSON body limits, origin check, client IP, rate limits
+lib/prayers/         → Prayer queries, creation, intercession, serialization
+lib/realtime/        → SSE broker
+tests/               → Vitest unit tests, Playwright api/ and e2e/ tests
 i18n/                → next-intl routing and request config
 messages/            → Translation files (es.json, en.json)
 migrations/          → Drizzle SQL migrations
@@ -63,6 +72,9 @@ migrations/          → Drizzle SQL migrations
 - Translations via `useTranslations()` from next-intl
 - Database queries via Drizzle ORM, never raw SQL in components
 - shadcn/ui for all UI primitives
+- Links and redirects via `@/i18n/navigation` (keeps the locale), never `next/link`
+- API errors are stable codes (`{ error: "rate_limit" }`) translated in the UI via `lib/errors.ts`
+- Validate request bodies with `readJson` + zod schemas in `lib/validation.ts`; derive identity only from session/cookie (`lib/requester.ts`), never from the body
 
 ## Purpose and Restrictions
 
