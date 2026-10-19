@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { PrayerCard } from "@/components/prayer-card";
+import { PrayerDetail } from "@/components/prayer-detail";
 import { LivePrayersProvider } from "@/components/live-prayers";
 import { getVisiblePrayer } from "@/lib/prayers/queries";
 import { toPublicPrayer } from "@/lib/prayers/serialize";
@@ -57,7 +57,7 @@ export default async function PrayerDetailPage({
       </h1>
 
       <LivePrayersProvider watchIds={[prayer.id]}>
-        <PrayerCard prayer={prayer} />
+        <PrayerDetail prayer={prayer} />
       </LivePrayersProvider>
     </main>
   );

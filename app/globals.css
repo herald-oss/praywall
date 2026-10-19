@@ -132,8 +132,10 @@ body::before {
   background-size: 256px 256px;
 }
 
+/* Light mode: remove the layer entirely (not just hide it), so the browser
+   doesn't keep a full-screen fixed layer around for nothing. */
 .light body::before {
-  opacity: 0;
+  content: none;
 }
 
 /* ── Scanlines (dark only, very subtle) ──────────────────── */
@@ -154,7 +156,7 @@ body::after {
 }
 
 .light body::after {
-  opacity: 0;
+  content: none;
 }
 
 @layer base {

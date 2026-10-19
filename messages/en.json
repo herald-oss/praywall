@@ -21,11 +21,18 @@
     "many_praying": "Many people are praying",
     "you_prayed": "You prayed for this",
     "delete": "Delete",
-    "delete_confirm": "Delete this prayer request? It's removed from the wall; the content is kept anonymized for community study.",
+    "delete_confirm": "It's removed from the wall. The text is kept anonymously (no name, no link to you) for community study.",
     "delete_success": "Prayer request deleted.",
     "delete_error": "Couldn't delete it. Please try again.",
     "already_prayed": "You already prayed for this request. Thank you!",
-    "your_request": "Your request"
+    "your_request": "Your request",
+    "goal_reached": "33+ people have prayed for this request",
+    "share": "Share",
+    "share_text": "Would you pray for this?",
+    "link_copied": "Link copied. Share it with anyone you'd like to pray.",
+    "load_more": "Show more requests",
+    "delete_title": "Delete this request?",
+    "cancel": "Cancel"
   },
   "form": {
     "placeholder": "What do you need prayer for today?",
@@ -68,14 +75,22 @@
     "benefits_title": "Why create an account?",
     "benefit_answered": "Mark your prayers as answered and share your testimony",
     "benefit_history": "See all your prayer requests in one place",
-    "benefit_notifications": "Get notified when someone prays for you",
     "benefit_share": "Share your requests so more people can pray",
-    "error": "Something went wrong. Try again."
+    "error": "Something went wrong. Try again.",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "no_recovery": "Keep it safe: we don't ask for an email, so there's no way to recover your password.",
+    "welcome": "Welcome, {name}!",
+    "signed_in": "Signed in. Good to see you!",
+    "benefit_count": "See how many people have prayed for your requests"
   },
   "success": {
     "title": "Your prayer was posted",
     "message": "Someone will pray for you. You are not alone.",
-    "continue": "Continue"
+    "continue": "Continue",
+    "view": "View my request",
+    "back_wall": "Back to the wall",
+    "share": "Share my request"
   },
   "pray_success": {
     "message_1": "Thank you for praying. Your prayer has power.",
@@ -88,7 +103,7 @@
   "register_page": {
     "title": "Create your account",
     "subtitle": "Do more with your prayers",
-    "no_thanks": "No thanks, don't remind me again",
+    "no_thanks": "Not now",
     "back_home": "Back to home"
   },
   "account": {
@@ -140,7 +155,7 @@
     "updated": "Last updated: {date}",
     "intro": "Praywall is a free, non-profit ministry. This page explains, in plain language, what data we collect, why, and what control you have over it.",
     "collect_title": "What we collect",
-    "collect_body": "The text of your prayer request, an optional name (or \"Anonymous\" if you choose that), and the category you pick. If you don't have an account, we store a technical cookie (\"praywall_visitor\") for 1 year to recognize you as a visitor and let you delete your own requests. If you create an account: your username, display name, and password (hashed, never stored in plain text). We don't ask for or store a real email — signup uses an internal placeholder email that never leaves our systems. If you have an account, our authentication provider automatically stores the IP and browser of your login sessions.",
+    "collect_body": "The text of your prayer request, an optional name (or \"Anonymous\", which is the default) and the category you pick. When you visit the site we store a technical cookie (\"praywall_visitor\", 1 year) holding a random identifier: it lets you delete your own requests without an account and keeps the same prayer from being counted twice. It's removed when you sign out. If you create an account: your username, display name, and password (hashed, never stored in plain text). We don't ask for or store a real email — signup uses an internal placeholder email that never leaves our systems. If you have an account, our authentication system stores the IP and browser of your login sessions. To limit abuse we use your IP briefly, in memory only, without storing it.",
     "why_title": "Why we collect it",
     "why_body": "Only to run the wall: show prayer requests, count how many people prayed, prevent duplicate posts or spam (via a content filter that runs 100% on our own server, see below), and to let you identify and delete your own requests.",
     "moderation_title": "Content moderation",
@@ -152,7 +167,7 @@
     "rights_title": "Your rights",
     "rights_body": "You can delete any of your own requests at any time (we verify it's yours via your session or visitor cookie — we never trust what the request itself claims). You can delete your entire account from your account page, which automatically anonymizes all your requests as described above.",
     "cookies_title": "Cookies",
-    "cookies_body": "We use a single first-party cookie (\"praywall_visitor\", technical, non-tracking, lasts 1 year) and, if you have an account, a session cookie to keep you signed in. No advertising or third-party cookies.",
+    "cookies_body": "We only use first-party, necessary cookies: \"praywall_visitor\" (a random visitor identifier, 1 year, removed when you sign out), session cookies if you have an account, and \"NEXT_LOCALE\" to remember your language. Your browser's local storage also remembers when we last showed you the invitation to create an account, so it isn't repeated; that value is never sent to our server. No advertising or third-party cookies.",
     "security_title": "Security",
     "security_body": "Hashed passwords, HTTPS, browser security headers (CSP, HSTS), and rate limits to prevent automated abuse.",
     "changes_title": "Changes to this policy",
@@ -213,5 +228,11 @@
   },
   "prayer_page": {
     "title": "Prayer request"
+  },
+  "invite": {
+    "title": "Keep your prayer journey",
+    "message": "With a free account you can see who you've prayed for, how many people pray for you, and share how God answered. No email, no ads.",
+    "create": "Create account",
+    "later": "Not now"
   }
 }

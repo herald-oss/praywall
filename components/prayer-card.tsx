@@ -1,49 +1,52 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { useCallback, useState } from "react";
+import { HandHeart, Share2, Sparkles, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { HandHeart, Sparkles } from "lucide-react";
-import { useState, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { getPathname } from "@/i18n/navigation";
+import { useNow } from "@/hooks/use-now";
+import { PRAYER_MAX_CHARS } from "@/lib/constants";
+import { errorMessageKey, readErrorCode } from "@/lib/errors";
 import type { PublicPrayer } from "@/lib/prayers/serialize";
+import { formatRelativeTime } from "@/lib/relative-time";
+import { shareLink } from "@/lib/share";
 import { IntercessorCount } from "./intercessor-count";
 import { useLiveState, withLiveCount } from "./live-prayers";
-import { PraySuccessDialog } from "./pray-success-dialog";
-import { Trash2 } from "lucide-react";
-import toast from "react-hot-toast";
-import { errorMessageKey, readErrorCode } from "@/lib/errors";
+import { usePraySuccess } from "./pray-success-provider";
 
-function getTimeAgo(date: Date, locale: string): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return locale === "es" ? "ahora" : "now";
-  if (diffMins < 60)
-    return locale === "es" ? `${diffMins}m` : `${diffMins}m`;
-  if (diffHours < 24)
-    return locale === "es" ? `${diffHours}h` : `${diffHours}h`;
-  return locale === "es" ? `${diffDays}d` : `${diffDays}d`;
-}
-
-function getAvatarColor(id: string | null): string {
+function getAvatarColor(id: string): string {
   const colors = [
     "bg-primary/20 text-primary",
     "bg-primary/15 text-primary/80",
     "bg-primary/25 text-primary/90",
     "bg-primary/10 text-primary/70",
   ];
-  if (!id) return colors[0];
   const hash = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   return colors[hash % colors.length];
 }
 
-function getInitials(name: string | null, isAnonymous: boolean): string {
-  if (isAnonymous || !name) return "?";
-  return name.charAt(0).toUpperCase();
+function RelativeTime({ date }: { date: Date | string }) {
+  const locale = useLocale();
+  const now = useNow();
+  const d = new Date(date);
+  // Empty until hydrated: server and client render the same markup.
+  return (
+    <time dateTime={d.toISOString()} className="font-mono text-xs tracking-[0.1em] text-subtle">
+      {now ? formatRelativeTime(d, now, locale) : ""}
+    </time>
+  );
 }
 
 export function PrayerCard({
@@ -58,16 +61,20 @@ export function PrayerCard({
   allowTestimony?: boolean;
 }) {
   const t = useTranslations();
+  const locale = useLocale();
+  const celebrate = usePraySuccess();
   const live = useLiveState();
   const prayer = withLiveCount(basePrayer, live);
+
   // Props carry live updates (SSE); local state only remembers what this
   // card itself just did. Counts only ever grow, so the max is always right.
   const [localCount, setLocalCount] = useState(0);
   const [prayedHere, setPrayedHere] = useState(false);
   const count = Math.max(prayer.intercessorCount ?? 0, localCount);
   const hasPrayed = prayer.viewerHasPrayed || prayedHere;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPraySuccess, setShowPraySuccess] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showTestimonyForm, setShowTestimonyForm] = useState(false);
   const [testimonyText, setTestimonyText] = useState(prayer.testimony ?? "");
@@ -76,14 +83,12 @@ export function PrayerCard({
   const handlePray = useCallback(async () => {
     if (hasPrayed || isSubmitting) return;
     setIsSubmitting(true);
-
     try {
       const res = await fetch("/api/intercede", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prayerId: prayer.id }),
       });
-
       if (!res.ok) {
         toast.error(t(errorMessageKey(await readErrorCode(res))));
         return;
@@ -96,28 +101,22 @@ export function PrayerCard({
       setLocalCount(data.count);
       if (data.ownPrayer) return;
       setPrayedHere(true);
-      if (data.alreadyPrayed) {
-        toast(t("wall.already_prayed"));
-      } else {
-        setShowPraySuccess(true);
-      }
+      if (data.alreadyPrayed) toast(t("wall.already_prayed"));
+      else celebrate();
     } catch {
       toast.error(t("errors.network"));
     } finally {
       setIsSubmitting(false);
     }
-  }, [hasPrayed, isSubmitting, prayer.id, t]);
+  }, [hasPrayed, isSubmitting, prayer.id, t, celebrate]);
 
   const handleDelete = useCallback(async () => {
     if (isDeleting) return;
-    if (!window.confirm(t("wall.delete_confirm"))) return;
     setIsDeleting(true);
-
     try {
-      const res = await fetch(`/api/prayers/${prayer.id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(`/api/prayers/${prayer.id}`, { method: "DELETE" });
       if (res.ok || res.status === 404) {
+        setConfirmDelete(false);
         toast.success(t("wall.delete_success"));
         onDeleted?.(prayer.id);
       } else {
@@ -130,17 +129,22 @@ export function PrayerCard({
     }
   }, [isDeleting, onDeleted, prayer.id, t]);
 
+  const handleShare = useCallback(async () => {
+    const url = `${window.location.origin}${getPathname({ href: `/prayer/${prayer.id}`, locale })}`;
+    const result = await shareLink({ url, title: t("wall.share_text"), text: t("wall.share_text") });
+    if (result === "copied") toast.success(t("wall.link_copied"));
+    else if (result === "failed") toast.error(t("errors.generic"));
+  }, [prayer.id, locale, t]);
+
   const handleSaveTestimony = useCallback(async () => {
     if (isSavingTestimony || !testimonyText.trim()) return;
     setIsSavingTestimony(true);
-
     try {
       const res = await fetch(`/api/prayers/${prayer.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ testimony: testimonyText.trim() }),
       });
-
       if (res.ok) {
         const updated = (await res.json()) as PublicPrayer;
         toast.success(t("account.testimony_success"));
@@ -156,51 +160,46 @@ export function PrayerCard({
     }
   }, [isSavingTestimony, testimonyText, prayer.id, onAnswered, t]);
 
-  function getButtonText(): string {
-    if (hasPrayed) return t("wall.you_prayed");
-    if (count === 0) return t("wall.be_first");
-    return t("wall.prayed");
-  }
-
   const displayName = prayer.isAnonymous
     ? t("wall.anonymous")
-    : prayer.displayName ?? prayer.userName ?? t("wall.anonymous");
+    : (prayer.displayName ?? prayer.userName ?? t("wall.anonymous"));
+  const initial =
+    prayer.isAnonymous || !(prayer.displayName ?? prayer.userName)
+      ? "?"
+      : (prayer.displayName ?? prayer.userName ?? "?").charAt(0).toUpperCase();
+
+  const prayButtonText = hasPrayed
+    ? t("wall.you_prayed")
+    : count === 0
+      ? t("wall.be_first")
+      : t("wall.prayed");
+
+  const iconButton =
+    "inline-flex h-11 w-11 items-center justify-center rounded-lg text-subtle transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50";
 
   return (
     <Card className="relative overflow-hidden transition-all duration-300 hover:border-primary/20 hover:shadow-[0_0_30px_rgba(var(--glow-color),0.06)]">
       <CardContent className="p-6">
         {/* Header — monospace meta */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-mono font-semibold ${getAvatarColor(prayer.id)}`}
+              aria-hidden
+              className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-xs font-mono font-semibold ${getAvatarColor(prayer.id)}`}
             >
-              {getInitials(prayer.displayName ?? prayer.userName, prayer.isAnonymous ?? false)}
+              {initial}
             </div>
-            <span className="font-mono text-xs tracking-[0.1em] text-subtle uppercase">
+            <span className="font-mono text-xs tracking-[0.1em] text-subtle uppercase truncate">
               {displayName}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {prayer.category && prayer.category !== "general" && (
               <span className="font-mono text-xs tracking-[0.1em] uppercase text-subtle border border-border rounded px-2 py-0.5">
-                {t(`categories.${prayer.category}` as Parameters<typeof t>[0])}
+                {t(`categories.${prayer.category}` as "categories.general")}
               </span>
             )}
-            <span className="font-mono text-xs tracking-[0.1em] text-subtle">
-              {getTimeAgo(new Date(prayer.createdAt), "es")}
-            </span>
-            {prayer.canManage && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={isDeleting}
-                aria-label={t("wall.delete")}
-                className="text-subtle hover:text-destructive transition-colors duration-300 disabled:opacity-50"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
-            )}
+            <RelativeTime date={prayer.createdAt} />
           </div>
         </div>
 
@@ -209,13 +208,20 @@ export function PrayerCard({
           {prayer.text}
         </p>
 
-        {/* Testimony — only in the owner's "Peticiones" tab, never public */}
+        {prayer.goalReached && (
+          <p className="mb-4 flex items-center gap-1.5 font-mono text-xs tracking-[0.1em] text-primary">
+            <Sparkles className="h-3.5 w-3.5" aria-hidden />
+            {t("wall.goal_reached")}
+          </p>
+        )}
+
+        {/* Testimony — only in the owner's own account tabs, never public */}
         {allowTestimony && prayer.canManage && (
           <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
             {prayer.answeredAt && !showTestimonyForm ? (
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5 text-primary">
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden />
                   <span className="font-mono text-xs tracking-[0.1em] uppercase">
                     {t("account.answered_badge")}
                   </span>
@@ -228,18 +234,22 @@ export function PrayerCard({
                 <button
                   type="button"
                   onClick={() => setShowTestimonyForm(true)}
-                  className="font-mono text-xs tracking-[0.1em] uppercase text-subtle hover:text-primary transition-colors duration-300"
+                  className="min-h-[44px] font-mono text-xs tracking-[0.1em] uppercase text-subtle hover:text-primary transition-colors duration-300"
                 >
                   {t("account.edit_testimony")}
                 </button>
               </div>
             ) : showTestimonyForm ? (
               <div className="space-y-2">
+                <label htmlFor={`testimony-${prayer.id}`} className="sr-only">
+                  {t("account.testimony_placeholder")}
+                </label>
                 <Textarea
+                  id={`testimony-${prayer.id}`}
                   value={testimonyText}
                   onChange={(e) => setTestimonyText(e.target.value)}
                   placeholder={t("account.testimony_placeholder")}
-                  maxLength={280}
+                  maxLength={PRAYER_MAX_CHARS}
                   className="min-h-20 bg-background"
                 />
                 <div className="flex gap-2">
@@ -268,9 +278,9 @@ export function PrayerCard({
               <button
                 type="button"
                 onClick={() => setShowTestimonyForm(true)}
-                className="flex items-center gap-1.5 font-mono text-xs tracking-[0.1em] uppercase text-primary hover:text-primary/80 transition-colors duration-300"
+                className="flex min-h-[44px] items-center gap-1.5 font-mono text-xs tracking-[0.1em] uppercase text-primary hover:text-primary/80 transition-colors duration-300"
               >
-                <Sparkles className="h-3.5 w-3.5" />
+                <Sparkles className="h-3.5 w-3.5" aria-hidden />
                 {t("account.mark_answered")}
               </button>
             )}
@@ -282,28 +292,62 @@ export function PrayerCard({
           {count > 0 && <IntercessorCount count={count} />}
 
           {prayer.canManage ? (
-            <span className="ml-auto font-mono text-xs tracking-[0.1em] uppercase text-subtle">
-              {t("wall.your_request")}
-            </span>
+            <div className="ml-auto flex items-center gap-1">
+              <span className="mr-1 font-mono text-xs tracking-[0.1em] uppercase text-subtle">
+                {t("wall.your_request")}
+              </span>
+              <button
+                type="button"
+                onClick={handleShare}
+                aria-label={t("wall.share")}
+                className={`${iconButton} hover:text-foreground`}
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                aria-label={t("wall.delete")}
+                className={`${iconButton} hover:text-destructive`}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           ) : (
-          <Button
-            variant={hasPrayed ? "secondary" : "default"}
-            size="default"
-            onClick={handlePray}
-            disabled={hasPrayed || isSubmitting}
-            aria-pressed={hasPrayed}
-            className="gap-2 shrink-0 ml-auto text-base tracking-wide transition-all duration-300"
-          >
-            <HandHeart className="h-3.5 w-3.5" />
-            {getButtonText()}
-          </Button>
+            <Button
+              variant={hasPrayed ? "secondary" : "default"}
+              size="default"
+              onClick={handlePray}
+              disabled={hasPrayed || isSubmitting}
+              aria-pressed={hasPrayed}
+              className="min-h-[44px] gap-2 shrink-0 ml-auto text-base tracking-wide transition-all duration-300"
+            >
+              <HandHeart className="h-3.5 w-3.5" aria-hidden />
+              {prayButtonText}
+            </Button>
           )}
         </div>
       </CardContent>
-      <PraySuccessDialog
-        open={showPraySuccess}
-        onOpenChange={setShowPraySuccess}
-      />
+
+      {/* Mounted only while open, so 100 cards don't carry 100 dialogs. */}
+      {confirmDelete && (
+        <Dialog open onOpenChange={setConfirmDelete}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("wall.delete_title")}</DialogTitle>
+              <DialogDescription>{t("wall.delete_confirm")}</DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="-mx-0 -mb-0 rounded-b-none border-t-0 bg-transparent p-0 sm:justify-start">
+              <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                {t("wall.delete")}
+              </Button>
+              <Button variant="secondary" onClick={() => setConfirmDelete(false)}>
+                {t("wall.cancel")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </Card>
   );
 }

@@ -3,16 +3,13 @@
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useSyncExternalStore } from "react";
-
-const noopSubscribe = () => () => {};
+import { useMounted } from "@/hooks/use-now";
 
 export function ThemeToggle() {
   const t = useTranslations("common");
   const { theme, setTheme } = useTheme();
-  // true on the client, false during SSR — avoids a theme-icon hydration
-  // mismatch without a setState-in-effect.
-  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  // Avoids a theme-icon hydration mismatch (the theme is only known client-side).
+  const mounted = useMounted();
 
   if (!mounted) {
     return (

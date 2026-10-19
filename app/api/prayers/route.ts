@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
   try {
     const params = request.nextUrl.searchParams;
     const offset = Number(params.get("offset") ?? "0");
+    const limit = Number(params.get("limit") ?? "0");
     const exclude = params.get("exclude");
 
     const requester = await getRequester(request.cookies);
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
     const rows = await listWall({
       requester,
       offset: Number.isFinite(offset) ? offset : 0,
+      limit: Number.isFinite(limit) && limit > 0 ? limit : undefined,
       excludeId: isUuid(exclude) ? exclude : null,
     });
 

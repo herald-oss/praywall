@@ -53,7 +53,7 @@ export async function listWall(opts: {
     .leftJoin(user, eq(prayers.userId, user.id))
     .where(and(...conditions))
     .orderBy(prayers.intercessorCount, sql`${prayers.createdAt} desc nulls last`)
-    .limit(Math.min(opts.limit ?? WALL_PAGE_SIZE, 50))
+    .limit(Math.min(Math.max(opts.limit ?? WALL_PAGE_SIZE, 1), 100))
     .offset(Math.max(opts.offset ?? 0, 0));
 }
 

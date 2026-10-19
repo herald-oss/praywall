@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { PrayerWall } from "@/components/prayer-wall";
-import { PrayerCard } from "@/components/prayer-card";
+import { FeaturedPrayer } from "@/components/featured-prayer";
 import { LivePrayersProvider } from "@/components/live-prayers";
 import { Link } from "@/i18n/navigation";
 import { cookies } from "next/headers";
@@ -69,14 +69,7 @@ function HomeContent({ featured }: { featured: PublicPrayer | null }) {
           </div>
 
           {/* Right — Featured prayer */}
-          {featured && (
-            <div>
-              <p className="font-mono text-xs tracking-[0.1em] uppercase text-subtle mb-4">
-                {t("hero.featured_title")}
-              </p>
-              <PrayerCard prayer={featured} />
-            </div>
-          )}
+          {featured && <FeaturedPrayer prayer={featured} />}
         </div>
       </section>
 

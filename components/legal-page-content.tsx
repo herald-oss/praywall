@@ -4,7 +4,7 @@ import { useTranslations, useLocale } from "next-intl";
 
 // Fixed publish date — update this when the copy actually changes, not on
 // every page load.
-const LAST_UPDATED_ISO = "2026-07-08";
+const LAST_UPDATED_ISO = "2026-10-19";
 
 const SECTION_KEYS: Record<"privacy" | "terms", string[]> = {
   privacy: [

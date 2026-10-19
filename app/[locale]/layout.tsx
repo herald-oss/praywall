@@ -9,6 +9,7 @@ import { outfit, geistMono } from "@/lib/fonts";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { PraySuccessProvider } from "@/components/pray-success-provider";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -72,9 +73,11 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <NextIntlClientProvider>
-            <Navbar />
-            {children}
-            <Footer />
+            <PraySuccessProvider>
+              <Navbar />
+              {children}
+              <Footer />
+            </PraySuccessProvider>
             <Toaster
               position="bottom-center"
               toastOptions={{

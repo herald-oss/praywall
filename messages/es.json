@@ -21,11 +21,18 @@
     "many_praying": "Muchas personas están orando",
     "you_prayed": "Oraste por esto",
     "delete": "Eliminar",
-    "delete_confirm": "¿Eliminar esta petición? Se retira del muro; el contenido se conserva de forma anónima para estudio de la comunidad.",
+    "delete_confirm": "Se retira del muro. El texto se conserva de forma anónima (sin nombre ni vínculo a ti) para estudio de la comunidad.",
     "delete_success": "Petición eliminada.",
     "delete_error": "No se pudo eliminar. Intenta de nuevo.",
     "already_prayed": "Ya habías orado por esta petición. ¡Gracias!",
-    "your_request": "Tu petición"
+    "your_request": "Tu petición",
+    "goal_reached": "Más de 33 personas oraron por esta petición",
+    "share": "Compartir",
+    "share_text": "¿Puedes orar por esto?",
+    "link_copied": "Enlace copiado. Compártelo con quien quieras que ore.",
+    "load_more": "Ver más peticiones",
+    "delete_title": "¿Eliminar esta petición?",
+    "cancel": "Cancelar"
   },
   "form": {
     "placeholder": "¿Por qué necesitas oración hoy?",
@@ -68,14 +75,22 @@
     "benefits_title": "¿Por qué crear una cuenta?",
     "benefit_answered": "Marca tus oraciones como respondidas y deja testimonio",
     "benefit_history": "Ve todas tus peticiones en un solo lugar",
-    "benefit_notifications": "Recibe cuando alguien ora por ti",
     "benefit_share": "Comparte tus peticiones para que más personas oren",
-    "error": "Hubo un error. Intenta de nuevo."
+    "error": "Hubo un error. Intenta de nuevo.",
+    "show_password": "Mostrar contraseña",
+    "hide_password": "Ocultar contraseña",
+    "no_recovery": "Guárdala bien: no pedimos correo, así que no hay forma de recuperar la contraseña.",
+    "welcome": "¡Bienvenido, {name}!",
+    "signed_in": "Sesión iniciada. ¡Qué bueno verte!",
+    "benefit_count": "Ve cuántas personas han orado por tus peticiones"
   },
   "success": {
     "title": "Tu oración fue publicada",
-    "message": "Alguien va a orar por ti. No estás sol@.",
-    "continue": "Continuar"
+    "message": "Alguien va a orar por ti. No estás solo.",
+    "continue": "Continuar",
+    "view": "Ver mi petición",
+    "back_wall": "Volver al muro",
+    "share": "Compartir mi petición"
   },
   "pray_success": {
     "message_1": "Gracias por orar. Tu oración tiene poder.",
@@ -88,7 +103,7 @@
   "register_page": {
     "title": "Crea tu cuenta",
     "subtitle": "Haz más con tus oraciones",
-    "no_thanks": "No gracias, no volver a recordar",
+    "no_thanks": "Ahora no",
     "back_home": "Volver al inicio"
   },
   "account": {
@@ -140,7 +155,7 @@
     "updated": "Última actualización: {date}",
     "intro": "Praywall es un ministerio gratuito y sin fines de lucro. Esta página explica, en español simple, qué datos recopilamos, por qué, y qué control tienes sobre ellos.",
     "collect_title": "Qué recopilamos",
-    "collect_body": "El texto de tu petición de oración, un nombre opcional (o \"Anónimo\" si eliges esa opción), y la categoría que elijas. Si no tienes cuenta, guardamos una cookie técnica (\"praywall_visitor\") por 1 año para reconocerte como visitante y permitirte eliminar tus propias peticiones. Si creas una cuenta: tu nombre de usuario, tu nombre para mostrar y tu contraseña (cifrada, nunca en texto plano). No pedimos ni guardamos tu correo real — el registro usa un correo interno ficticio que nunca sale de nuestros sistemas. Si tienes cuenta, nuestro proveedor de autenticación guarda automáticamente la IP y el navegador de tus sesiones de inicio de sesión.",
+    "collect_body": "El texto de tu petición de oración, un nombre opcional (o \"Anónimo\", que es la opción por defecto) y la categoría que elijas. Al visitar el sitio guardamos una cookie técnica (\"praywall_visitor\", 1 año) con un identificador aleatorio: permite que elimines tus propias peticiones sin tener cuenta y evita contar dos veces la misma oración. Se borra al cerrar sesión. Si creas una cuenta: tu nombre de usuario, tu nombre para mostrar y tu contraseña (cifrada, nunca en texto plano). No pedimos ni guardamos tu correo real — el registro usa un correo interno ficticio que nunca sale de nuestros sistemas. Si tienes cuenta, nuestro sistema de autenticación guarda la IP y el navegador de tus sesiones de inicio de sesión. Para limitar abusos usamos tu IP de forma temporal, solo en memoria y sin guardarla.",
     "why_title": "Por qué lo recopilamos",
     "why_body": "Únicamente para operar el muro: mostrar peticiones, contar cuántas personas oraron, evitar publicaciones duplicadas o spam (con un filtro de contenido que corre 100% en nuestro servidor, ver abajo), y para que puedas identificar y eliminar tus propias peticiones.",
     "moderation_title": "Moderación de contenido",
@@ -152,7 +167,7 @@
     "rights_title": "Tus derechos",
     "rights_body": "Puedes eliminar cualquier petición tuya en cualquier momento (verificamos que sea tuya por tu sesión o tu cookie de visitante, nunca confiamos en lo que diga el propio pedido). Puedes eliminar tu cuenta completa desde tu página de cuenta, lo cual anonimiza automáticamente todas tus peticiones según se explica arriba.",
     "cookies_title": "Cookies",
-    "cookies_body": "Usamos una sola cookie propia (\"praywall_visitor\", técnica, no de rastreo, dura 1 año) y, si tienes cuenta, una cookie de sesión para mantenerte conectado. Ninguna cookie de publicidad ni de terceros.",
+    "cookies_body": "Solo usamos cookies propias y necesarias: \"praywall_visitor\" (identificador aleatorio de visitante, 1 año, se borra al cerrar sesión), las cookies de sesión si tienes cuenta y \"NEXT_LOCALE\" para recordar tu idioma. Además, tu navegador guarda en su almacenamiento local cuándo te mostramos la invitación a crear una cuenta, para no repetirla; ese dato nunca se envía a nuestro servidor. Ninguna cookie de publicidad ni de terceros.",
     "security_title": "Seguridad",
     "security_body": "Contraseñas cifradas, conexión HTTPS, cabeceras de seguridad del navegador (CSP, HSTS) y límites de frecuencia para prevenir abuso automatizado.",
     "changes_title": "Cambios a esta política",
@@ -213,5 +228,11 @@
   },
   "prayer_page": {
     "title": "Petición de oración"
+  },
+  "invite": {
+    "title": "Guarda tu camino de oración",
+    "message": "Con una cuenta gratuita ves por quién has orado, cuántas personas oran por ti y puedes compartir cómo Dios respondió. Sin correo y sin anuncios.",
+    "create": "Crear cuenta",
+    "later": "Ahora no"
   }
 }
