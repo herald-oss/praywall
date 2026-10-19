@@ -115,7 +115,7 @@
     "cancel": "Cancelar",
     "delete_success": "Tu cuenta fue eliminada.",
     "delete_error": "No se pudo eliminar la cuenta. Verifica tu contraseña e intenta de nuevo.",
-    "tab_info": "Información",
+    "tab_info": "Perfil",
     "tab_requests": "Peticiones",
     "tab_prayed": "Oraciones",
     "tab_answered": "Contestadas",
@@ -130,7 +130,17 @@
     "testimony_placeholder": "Cuenta cómo Dios respondió esta oración...",
     "testimony_save": "Guardar",
     "testimony_success": "Testimonio guardado.",
-    "testimony_error": "No se pudo guardar el testimonio."
+    "testimony_error": "No se pudo guardar el testimonio.",
+    "profile_title": "Tu nombre",
+    "profile_help": "Así te verán en las peticiones que publiques con tu nombre.",
+    "save": "Guardar",
+    "name_saved": "Nombre actualizado.",
+    "password_title": "Cambiar contraseña",
+    "current_password": "Contraseña actual",
+    "new_password": "Nueva contraseña",
+    "password_help": "Al cambiarla cerramos tu sesión en los demás dispositivos.",
+    "password_saved": "Contraseña actualizada.",
+    "danger_title": "Zona delicada"
   },
   "common": {
     "app_name": "Unos Por Otros",
@@ -208,7 +218,9 @@
     "empty": "No puede estar vacío.",
     "invalid_input": "Revisa los datos e intenta de nuevo.",
     "not_found": "Esta petición ya no está disponible.",
-    "sign_out_failed": "No se pudo cerrar sesión. Intenta de nuevo."
+    "sign_out_failed": "No se pudo cerrar sesión. Intenta de nuevo.",
+    "password_too_short": "La contraseña debe tener al menos 8 caracteres.",
+    "password_too_long": "La contraseña es demasiado larga."
   },
   "meta": {
     "site_name": "Unos Por Otros",

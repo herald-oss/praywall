@@ -46,6 +46,15 @@ export const auth = betterAuth({
   advanced: {
     ipAddress: { ipAddressHeaders: trustedIpHeaders() },
   },
+  // Applies to the few native endpoints still reachable over HTTP.
+  rateLimit: {
+    window: 60,
+    max: 60,
+    customRules: {
+      "/change-password": { window: 15 * 60, max: 5 },
+      "/delete-user": { window: 15 * 60, max: 5 },
+    },
+  },
   user: {
     additionalFields: {
       // Set atomically at signup (inside Better-Auth's own insert) instead of

@@ -16,6 +16,8 @@ const KNOWN_CODES = new Set([
   "not_found",
   "sign_out_failed",
   "network",
+  "password_too_short",
+  "password_too_long",
 ]);
 
 export type ErrorKey = `errors.${string}`;

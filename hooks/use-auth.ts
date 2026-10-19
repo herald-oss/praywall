@@ -15,8 +15,12 @@ type AuthState = {
   isLoading: boolean;
 };
 
-// Simple in-memory store so all hook instances share state
+// Simple in-memory store so all hook instances share state.
+// "Started" and "loaded" are separate: a component that mounts while the
+// first session fetch is still in flight must keep waiting, not assume
+// "loaded, nobody logged in" (that made the account page bounce to home).
 let globalUser: AuthUser | null = null;
+let fetchStarted = false;
 let globalLoaded = false;
 const listeners = new Set<() => void>();
 
@@ -26,6 +30,7 @@ function notify() {
 
 function setGlobalUser(user: AuthUser | null) {
   globalUser = user;
+  globalLoaded = true;
   notify();
 }
 
@@ -54,9 +59,9 @@ export function useAuth() {
     };
     listeners.add(update);
 
-    // Fetch session on first mount
-    if (!globalLoaded) {
-      globalLoaded = true;
+    // Fetch the session once, on the first mount anywhere in the app.
+    if (!fetchStarted) {
+      fetchStarted = true;
       fetch("/api/auth/session")
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
@@ -67,10 +72,13 @@ export function useAuth() {
               name: data.user.name || "",
             };
           }
-          notify();
         })
-        .catch(() => notify());
-    } else {
+        .catch(() => {})
+        .finally(() => {
+          globalLoaded = true;
+          notify();
+        });
+    } else if (globalLoaded) {
       update();
     }
 
@@ -113,9 +121,26 @@ export function useAuth() {
     setGlobalUser(null);
   }, []);
 
-  const updateUser = useCallback((patch: Partial<AuthUser>) => {
-    if (globalUser) setGlobalUser({ ...globalUser, ...patch });
+  const updateDisplayName = useCallback(async (displayName: string) => {
+    const res = await fetch("/api/account/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ displayName }),
+    });
+    if (!res.ok) throw new ApiError(await readErrorCode(res));
+    const data = (await res.json()) as { user: { name: string } };
+    if (globalUser) setGlobalUser({ ...globalUser, name: data.user.name });
   }, []);
 
-  return { ...state, signUp, signIn, signOut, deleteAccount, updateUser };
+  // Also signs out every other device, in case the old password leaked.
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    const res = await postJson("/api/auth/change-password", {
+      currentPassword,
+      newPassword,
+      revokeOtherSessions: true,
+    });
+    if (!res.ok) throw new ApiError(await readErrorCode(res));
+  }, []);
+
+  return { ...state, signUp, signIn, signOut, deleteAccount, updateDisplayName, changePassword };
 }
