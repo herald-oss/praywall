@@ -82,7 +82,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         answeredAt: owned.answeredAt ?? new Date(),
         testimony: testimony.trim(),
       })
-      .where(eq(prayers.id, id))
+      .where(and(eq(prayers.id, id), isNull(prayers.archivedAt)))
       .returning();
     if (!updated) throw notFound();
 

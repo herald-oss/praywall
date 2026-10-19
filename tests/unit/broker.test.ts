@@ -71,6 +71,15 @@ describe("realtime broker", () => {
     expect(broker.canAccept("3.3.3.3")).toBe(false);
   });
 
+  it("unknown IPs only count toward the global cap", async () => {
+    const broker = await loadBroker({ SSE_MAX_CONNECTIONS: "3", SSE_MAX_PER_IP: "1" });
+    broker.register(null, fakeClient().send);
+    broker.register(null, fakeClient().send);
+    expect(broker.canAccept(null)).toBe(true);
+    broker.register(null, fakeClient().send);
+    expect(broker.canAccept(null)).toBe(false);
+  });
+
   it("drops clients whose stream is gone", async () => {
     const broker = await loadBroker();
     broker.register("1.1.1.1", () => false);

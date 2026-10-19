@@ -13,6 +13,7 @@ let timer: ReturnType<typeof setInterval> | null = null;
 function subscribe(listener: () => void) {
   listeners.add(listener);
   if (!timer) {
+    current = Date.now(); // the clock may have been idle for a while
     timer = setInterval(() => {
       current = Date.now();
       listeners.forEach((l) => l());

@@ -5,7 +5,7 @@ import { prayers } from "@/lib/db/schema";
 /**
  * Archiva + anonimiza UNA oración. Nunca hace DELETE físico: conserva text/
  * category/intercessorCount/timestamps para estudio agregado, pero limpia
- * todo lo que identifique a quién la escribió.
+ * todo lo que identifique a quién la escribió (incluido el testimonio).
  *
  * El filtro isNull(archivedAt) la hace idempotente y a prueba de carrera: un
  * segundo intento de archivar la misma fila devuelve 0 filas afectadas en
@@ -19,6 +19,8 @@ export async function archivePrayer(id: string): Promise<number> {
       displayName: null,
       visitorId: null,
       userId: null,
+      // A testimony is a personal story — it goes too.
+      testimony: null,
     })
     .where(and(eq(prayers.id, id), isNull(prayers.archivedAt)))
     .returning({ id: prayers.id });
@@ -42,6 +44,7 @@ export async function archivePrayersOwnedByUser(
       displayName: null,
       visitorId: null,
       userId: null,
+      testimony: null,
     })
     .where(and(eq(prayers.userId, userId), isNull(prayers.archivedAt)))
     .returning({ id: prayers.id });

@@ -12,7 +12,20 @@ export function enforceRateLimit(key: string, limit: Limit): void {
   }
 }
 
-/** IP-keyed limit; skipped when the client IP is unknown (see getClientIp). */
+// When the client IP is unknown (proxy header missing), everyone would share
+// one bucket. Using the normal per-IP limit there would let one abuser lock
+// out every visitor; skipping it would leave signups/logins unlimited. So
+// unknown IPs share a much larger, site-wide bucket instead.
+const UNKNOWN_IP_MULTIPLIER = 20;
+
+/** IP-keyed limit, with a coarse site-wide fallback when the IP is unknown. */
 export function enforceIpRateLimit(prefix: string, ip: string | null, limit: Limit): void {
-  if (ip) enforceRateLimit(`${prefix}:${ip}`, limit);
+  if (ip) {
+    enforceRateLimit(`${prefix}:${ip}`, limit);
+  } else {
+    enforceRateLimit(`${prefix}:unknown-ip`, {
+      limit: limit.limit * UNKNOWN_IP_MULTIPLIER,
+      windowMs: limit.windowMs,
+    });
+  }
 }

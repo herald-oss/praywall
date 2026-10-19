@@ -11,7 +11,7 @@ export type WallEvent =
   | { type: "removed"; id: string };
 
 interface Client {
-  ip: string;
+  ip: string | null;
   send: (chunk: string) => boolean;
 }
 
@@ -48,14 +48,16 @@ const state: BrokerState = (g.__praywallBroker ??= {
   flushTimer: null,
 });
 
-export function canAccept(ip: string): boolean {
-  return state.clients.size < MAX_CONNECTIONS && (state.perIp.get(ip) ?? 0) < MAX_PER_IP;
+/** Unknown IPs (null) only count toward the global cap, never a shared per-IP pool. */
+export function canAccept(ip: string | null): boolean {
+  if (state.clients.size >= MAX_CONNECTIONS) return false;
+  return ip == null || (state.perIp.get(ip) ?? 0) < MAX_PER_IP;
 }
 
-export function register(ip: string, send: (chunk: string) => boolean): number {
+export function register(ip: string | null, send: (chunk: string) => boolean): number {
   const id = state.nextId++;
   state.clients.set(id, { ip, send });
-  state.perIp.set(ip, (state.perIp.get(ip) ?? 0) + 1);
+  if (ip != null) state.perIp.set(ip, (state.perIp.get(ip) ?? 0) + 1);
   startHeartbeat();
   return id;
 }
@@ -64,9 +66,11 @@ export function unregister(id: number): void {
   const client = state.clients.get(id);
   if (!client) return;
   state.clients.delete(id);
-  const left = (state.perIp.get(client.ip) ?? 1) - 1;
-  if (left <= 0) state.perIp.delete(client.ip);
-  else state.perIp.set(client.ip, left);
+  if (client.ip != null) {
+    const left = (state.perIp.get(client.ip) ?? 1) - 1;
+    if (left <= 0) state.perIp.delete(client.ip);
+    else state.perIp.set(client.ip, left);
+  }
   if (state.clients.size === 0) stopHeartbeat();
 }
 

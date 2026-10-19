@@ -237,3 +237,25 @@ test("delete-user archives prayers and clears the visitor cookie", async ({ play
   expect(rows[0].display_name).toBeNull();
   expect(rows[0].archived_at).not.toBeNull();
 });
+
+test.describe("native endpoint hardening", () => {
+  test("delete-user always needs the password, even with a fresh session", async ({ playwright }) => {
+    const client = await newClient(playwright);
+    await signup(client, { username: uniqueUsername("keepme") });
+    for (const data of [{}, { password: "" }]) {
+      const res = await client.post("/api/auth/delete-user", { data, headers: { origin: BASE_URL } });
+      expect(res.status()).toBe(400);
+    }
+    const session = await (await client.get("/api/auth/session")).json();
+    expect(session.user).not.toBeNull();
+  });
+
+  test("oversized bodies to native endpoints are rejected before Better-Auth reads them", async ({ playwright }) => {
+    const client = await newClient(playwright);
+    const res = await client.post("/api/auth/sign-out", {
+      data: { pad: "x".repeat(20_000) },
+      headers: { origin: BASE_URL },
+    });
+    expect(res.status()).toBe(413);
+  });
+});

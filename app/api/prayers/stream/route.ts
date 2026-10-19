@@ -15,8 +15,8 @@ const MAX_LIFETIME_MS = envInt("SSE_MAX_LIFETIME_MS", 14 * 60_000);
 const RETRY_MS = envInt("SSE_RETRY_MS", 3_000);
 
 export async function GET(request: NextRequest) {
-  // Unknown IPs share one per-IP slot pool; the global cap still applies.
-  const ip = getClientIp(request) ?? "unknown";
+  // null (unknown IP) is only limited by the global cap.
+  const ip = getClientIp(request);
   if (!canAccept(ip)) {
     return new Response("Too many live connections", {
       status: 503,

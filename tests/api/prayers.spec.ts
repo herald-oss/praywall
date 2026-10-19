@@ -259,3 +259,29 @@ test("GET /api/prayers?ids= returns only those visible prayers", async ({ playwr
   const body = await res.json();
   expect(body.map((p: { id: string }) => p.id)).toEqual([a]);
 });
+
+test("deleting a prayer also removes its testimony", async ({ playwright }) => {
+  const owner = await newClient(playwright);
+  const id = (await (await post(owner, { text: "Oren por mi matrimonio" })).json()).id;
+  await owner.patch(`/api/prayers/${id}`, {
+    data: { testimony: "Nos reconciliamos" },
+    headers: { origin: BASE_URL },
+  });
+  await owner.delete(`/api/prayers/${id}`, { headers: { origin: BASE_URL } });
+  const { rows } = await testDb().query("SELECT testimony, archived_at FROM prayers WHERE id = $1", [id]);
+  expect(rows[0].testimony).toBeNull();
+  expect(rows[0].archived_at).not.toBeNull();
+});
+
+test("a shared browser cookie never reveals another account's intercessions", async ({ playwright }) => {
+  const prayerId = await insertPrayer({ text: "Oren por mi abuelo" });
+  const visitor = crypto.randomUUID();
+  const a = await newClient(playwright, { cookie: `praywall_visitor=${visitor}` });
+  await signup(a, { username: uniqueUsername("sha") });
+  await pray(a, prayerId);
+
+  // Same browser cookie, but A's session is gone (expired, never signed out).
+  const next = await newClient(playwright, { cookie: `praywall_visitor=${visitor}` });
+  const wall = await (await next.get("/api/prayers")).json();
+  expect(wall.find((p: { id: string }) => p.id === prayerId).viewerHasPrayed).toBe(false);
+});

@@ -32,7 +32,11 @@ export function UserNav() {
         </Link>
         <button
           onClick={() =>
-            signOut().catch(() => toast.error(t("errors.sign_out_failed")))
+            signOut()
+              // Start clean: nothing of the previous person stays on screen
+              // (important on shared devices).
+              .then(() => window.location.reload())
+              .catch(() => toast.error(t("errors.sign_out_failed")))
           }
           className="h-10 w-10 rounded-lg border border-border flex items-center justify-center text-subtle hover:text-foreground hover:border-muted-foreground/30 transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           aria-label={t("auth.sign_out")}

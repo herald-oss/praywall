@@ -76,7 +76,11 @@ export function LivePrayersProvider({
             const counts = new Map(s.counts);
             const removed = new Set(s.removed);
             for (const p of fresh) {
-              counts.set(p.id, { intercessorCount: p.intercessorCount, goalReached: p.goalReached });
+              const known = counts.get(p.id);
+              // A newer live update may have arrived while this was loading.
+              if (!known || p.intercessorCount > known.intercessorCount) {
+                counts.set(p.id, { intercessorCount: p.intercessorCount, goalReached: p.goalReached });
+              }
             }
             for (const id of ids) if (!fresh.some((p) => p.id === id)) removed.add(id);
             return { ...s, counts, removed };

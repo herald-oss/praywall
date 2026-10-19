@@ -22,10 +22,12 @@ describe("getClientIp", () => {
 });
 
 describe("enforceIpRateLimit", () => {
-  it("never limits unknown IPs (no shared global bucket)", () => {
-    for (let i = 0; i < 50; i++) {
-      expect(() => enforceIpRateLimit("t:unknown", null, { limit: 1, windowMs: 60_000 })).not.toThrow();
+  it("unknown IPs share a much larger site-wide bucket, not the per-IP limit", () => {
+    const prefix = `t:unknown:${Math.random()}`;
+    for (let i = 0; i < 20; i++) {
+      expect(() => enforceIpRateLimit(prefix, null, { limit: 1, windowMs: 60_000 })).not.toThrow();
     }
+    expect(() => enforceIpRateLimit(prefix, null, { limit: 1, windowMs: 60_000 })).toThrow(HttpError);
   });
 
   it("limits known IPs", () => {

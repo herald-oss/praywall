@@ -1,5 +1,7 @@
 import { toNextJsHandler } from "better-auth/next-js";
 import { auth } from "@/lib/auth";
+import { readJson } from "@/lib/http/body";
+import { errorResponse, HttpError } from "@/lib/http/errors";
 import { clearVisitorCookieHeader } from "@/lib/visitor";
 
 const handler = toNextJsHandler(auth);
@@ -13,6 +15,9 @@ const ALLOWED_POST = new Set(["/sign-out", "/delete-user", "/change-password"]);
 // so the next person on a shared device (e.g. a church computer) can't see or
 // delete what the previous person posted or prayed for.
 const CLEARS_VISITOR = new Set(["/sign-out", "/delete-user"]);
+
+// These bodies are tiny; Better-Auth would otherwise buffer any size.
+const MAX_AUTH_BODY_BYTES = 4 * 1024;
 
 function subPath(request: Request): string {
   return new URL(request.url).pathname.replace(/^\/api\/auth/, "") || "/";
@@ -30,7 +35,34 @@ export async function POST(request: Request) {
   const path = subPath(request);
   if (!ALLOWED_POST.has(path)) return notFound();
 
-  const response = await handler.POST(request);
+  let body: unknown;
+  try {
+    body = await readJson(request, MAX_AUTH_BODY_BYTES);
+    // Better-Auth skips the password check on delete-user when the session
+    // is "fresh" and no password is sent. The UI always asks for it, so
+    // require it — someone at a shared computer with a forgotten open
+    // session must not be able to delete that account.
+    if (path === "/delete-user") {
+      const password = (body as { password?: unknown } | null)?.password;
+      if (typeof password !== "string" || password.length === 0) {
+        throw new HttpError(400, "invalid_password");
+      }
+    }
+  } catch (error) {
+    return errorResponse(error, "Auth request rejected");
+  }
+
+  // Re-create the request from the already-validated body (the original
+  // stream has been consumed).
+  const headers = new Headers(request.headers);
+  headers.delete("content-length");
+  const forwarded = new Request(request.url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body ?? {}),
+  });
+
+  const response = await handler.POST(forwarded);
   if (!response.ok || !CLEARS_VISITOR.has(path)) return response;
 
   const withCleared = new Response(response.body, response);

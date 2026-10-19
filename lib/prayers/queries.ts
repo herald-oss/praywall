@@ -12,8 +12,11 @@ function prayerColumns(requester: Requester) {
       ? sql<boolean>`exists (
           select 1 from ${intercessions}
           where ${intercessions.prayerId} = ${prayers.id}
-            and (${intercessions.visitorId} = ${requester.visitorId ?? ""}
-              or ${intercessions.userId} = ${requester.userId ?? ""})
+            and (
+              (${intercessions.visitorId} = ${requester.visitorId ?? ""}
+                and (${intercessions.userId} is null or ${intercessions.userId} = ${requester.userId ?? ""}))
+              or ${intercessions.userId} = ${requester.userId ?? ""}
+            )
         )`
       : sql<boolean>`false`;
 
@@ -115,7 +118,11 @@ export async function listIntercededPrayers(
 ): Promise<PrayerRow[]> {
   const mine: SQL[] = [];
   if (requester.userId) mine.push(eq(intercessions.userId, requester.userId));
-  if (requester.visitorId) mine.push(eq(intercessions.visitorId, requester.visitorId));
+  // The device cookie only brings in anonymous rows — never intercessions
+  // that belong to another account that used this browser before.
+  if (requester.visitorId) {
+    mine.push(and(eq(intercessions.visitorId, requester.visitorId), isNull(intercessions.userId))!);
+  }
   if (mine.length === 0) return [];
 
   const latest = db

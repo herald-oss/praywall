@@ -115,7 +115,14 @@ export function PrayerCard({
     setIsDeleting(true);
     try {
       const res = await fetch(`/api/prayers/${prayer.id}`, { method: "DELETE" });
-      if (res.ok || res.status === 404) {
+      // 404 means "gone" or "not yours" (e.g. you signed out meanwhile) —
+      // only call it deleted if it's really no longer on the wall.
+      let gone = res.status === 204;
+      if (res.status === 404) {
+        const check = await fetch(`/api/prayers?ids=${prayer.id}`);
+        gone = check.ok && ((await check.json()) as unknown[]).length === 0;
+      }
+      if (gone) {
         setConfirmDelete(false);
         toast.success(t("wall.delete_success"));
         onDeleted?.(prayer.id);

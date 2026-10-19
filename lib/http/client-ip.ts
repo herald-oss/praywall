@@ -11,9 +11,9 @@ function configuredHeader(): string | null {
 }
 
 /**
- * The client IP, or null when it can't be determined. Callers must skip
- * IP-based limits on null: lumping everyone into one "unknown" bucket would
- * let a single abuser lock out every real visitor.
+ * The client IP, or null when it can't be determined. Callers must not
+ * treat null as one ordinary IP (see enforceIpRateLimit): lumping everyone
+ * into one normal-sized bucket would let a single abuser lock out everyone.
  */
 export function getClientIp(request: Request): string | null {
   const header = configuredHeader();
@@ -23,7 +23,7 @@ export function getClientIp(request: Request): string | null {
   if (process.env.NODE_ENV === "production" && !warnedMissing) {
     warnedMissing = true;
     console.warn(
-      `[praywall] No "${header}" header on incoming requests — IP-based rate limits are off. Set TRUSTED_IP_HEADER for your proxy.`
+      `[praywall] No "${header}" header on incoming requests — falling back to coarse site-wide rate limits. Set TRUSTED_IP_HEADER for your proxy.`
     );
   }
   return null;
