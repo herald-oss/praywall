@@ -11,3 +11,8 @@ export function enforceRateLimit(key: string, limit: Limit): void {
     });
   }
 }
+
+/** IP-keyed limit; skipped when the client IP is unknown (see getClientIp). */
+export function enforceIpRateLimit(prefix: string, ip: string | null, limit: Limit): void {
+  if (ip) enforceRateLimit(`${prefix}:${ip}`, limit);
+}

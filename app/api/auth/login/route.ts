@@ -6,7 +6,7 @@ import { readJson } from "@/lib/http/body";
 import { getClientIp } from "@/lib/http/client-ip";
 import { errorResponse, HttpError } from "@/lib/http/errors";
 import { assertSameOrigin } from "@/lib/http/origin";
-import { enforceRateLimit } from "@/lib/http/rate";
+import { enforceIpRateLimit, enforceRateLimit } from "@/lib/http/rate";
 import { loginSchema, parseInput } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     assertSameOrigin(request);
     // Better-Auth's own rate limiter doesn't apply to server-side auth.api
     // calls, so brute-force protection lives here: per IP and per username.
-    enforceRateLimit(`login:ip:${getClientIp(request)}`, LIMITS.loginPerIp);
+    enforceIpRateLimit("login:ip", getClientIp(request), LIMITS.loginPerIp);
 
     const { username, password } = parseInput(loginSchema, await readJson(request));
     const normalized = username.trim().toLowerCase();

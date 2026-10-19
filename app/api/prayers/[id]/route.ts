@@ -40,7 +40,7 @@ async function loadOwnedPrayer(id: string, requester: Requester) {
 }
 
 function manageKey(request: NextRequest, requester: Requester) {
-  return requester.userId ?? requester.visitorId ?? `ip:${getClientIp(request)}`;
+  return requester.userId ?? requester.visitorId ?? `ip:${getClientIp(request) ?? "unknown"}`;
 }
 
 export async function DELETE(request: NextRequest, { params }: Params) {

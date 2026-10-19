@@ -4,7 +4,7 @@ import { readJson } from "@/lib/http/body";
 import { getClientIp } from "@/lib/http/client-ip";
 import { errorResponse, HttpError } from "@/lib/http/errors";
 import { assertSameOrigin } from "@/lib/http/origin";
-import { enforceRateLimit } from "@/lib/http/rate";
+import { enforceIpRateLimit } from "@/lib/http/rate";
 import { intercede } from "@/lib/prayers/intercede";
 import { publish } from "@/lib/realtime/broker";
 import { getRequester } from "@/lib/requester";
@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
     // that, so cap what one network can add: a generous per-IP rate (a whole
     // church may share one Wi-Fi) plus a daily cap per IP per prayer.
     const ip = getClientIp(request);
-    enforceRateLimit(`intercede:ip:${ip}`, LIMITS.intercedePerIp);
-    enforceRateLimit(`intercede:ip-prayer:${ip}:${prayerId}`, LIMITS.intercedePerIpPerPrayer);
+    enforceIpRateLimit("intercede:ip", ip, LIMITS.intercedePerIp);
+    enforceIpRateLimit(`intercede:ip-prayer:${prayerId}`, ip, LIMITS.intercedePerIpPerPrayer);
 
     const { visitorId, isNew } = getOrCreateVisitorId(request);
     const requester = await getRequester(request.cookies);

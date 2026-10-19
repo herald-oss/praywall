@@ -3,17 +3,34 @@
 // anything to it. Set TRUSTED_IP_HEADER to another header name if you deploy
 // behind a different proxy, or to "none" to disable IP-based keys.
 
-export function getClientIp(request: Request): string {
+let warnedMissing = false;
+
+function configuredHeader(): string | null {
   const header = (process.env.TRUSTED_IP_HEADER ?? "x-real-ip").toLowerCase();
-  if (header !== "none") {
-    const value = request.headers.get(header)?.split(",")[0]?.trim();
-    if (value) return value.slice(0, 64);
+  return header === "none" ? null : header;
+}
+
+/**
+ * The client IP, or null when it can't be determined. Callers must skip
+ * IP-based limits on null: lumping everyone into one "unknown" bucket would
+ * let a single abuser lock out every real visitor.
+ */
+export function getClientIp(request: Request): string | null {
+  const header = configuredHeader();
+  if (!header) return null;
+  const value = request.headers.get(header)?.split(",")[0]?.trim();
+  if (value) return value.slice(0, 64);
+  if (process.env.NODE_ENV === "production" && !warnedMissing) {
+    warnedMissing = true;
+    console.warn(
+      `[praywall] No "${header}" header on incoming requests — IP-based rate limits are off. Set TRUSTED_IP_HEADER for your proxy.`
+    );
   }
-  return "unknown";
+  return null;
 }
 
 /** Header list for Better-Auth's own rate limiter / session IP. */
 export function trustedIpHeaders(): string[] {
-  const header = (process.env.TRUSTED_IP_HEADER ?? "x-real-ip").toLowerCase();
-  return header === "none" ? [] : [header];
+  const header = configuredHeader();
+  return header ? [header] : [];
 }

@@ -10,7 +10,7 @@ import { readJson } from "@/lib/http/body";
 import { getClientIp } from "@/lib/http/client-ip";
 import { errorResponse, HttpError } from "@/lib/http/errors";
 import { assertSameOrigin } from "@/lib/http/origin";
-import { enforceRateLimit } from "@/lib/http/rate";
+import { enforceIpRateLimit } from "@/lib/http/rate";
 import { containsProfanity, moderateText } from "@/lib/moderation";
 import { parseInput, signupSchema } from "@/lib/validation";
 import { readVisitorId } from "@/lib/visitor";
@@ -18,7 +18,7 @@ import { readVisitorId } from "@/lib/visitor";
 export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request);
-    enforceRateLimit(`signup:ip:${getClientIp(request)}`, LIMITS.signupPerIp);
+    enforceIpRateLimit("signup:ip", getClientIp(request), LIMITS.signupPerIp);
 
     const input = parseInput(signupSchema, await readJson(request));
     const username = input.username.toLowerCase();

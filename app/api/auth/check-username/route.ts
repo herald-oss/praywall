@@ -6,11 +6,11 @@ import { db } from "@/lib/db";
 import { user } from "@/lib/db/schema";
 import { getClientIp } from "@/lib/http/client-ip";
 import { errorResponse } from "@/lib/http/errors";
-import { enforceRateLimit } from "@/lib/http/rate";
+import { enforceIpRateLimit } from "@/lib/http/rate";
 
 export async function GET(request: NextRequest) {
   try {
-    enforceRateLimit(`check-username:ip:${getClientIp(request)}`, LIMITS.checkUsernamePerIp);
+    enforceIpRateLimit("check-username:ip", getClientIp(request), LIMITS.checkUsernamePerIp);
 
     const username = request.nextUrl.searchParams.get("username");
     if (!username || !USERNAME_REGEX.test(username)) {

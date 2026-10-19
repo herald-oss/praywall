@@ -4,7 +4,7 @@ import { readJson } from "@/lib/http/body";
 import { getClientIp } from "@/lib/http/client-ip";
 import { errorResponse } from "@/lib/http/errors";
 import { assertSameOrigin } from "@/lib/http/origin";
-import { enforceRateLimit } from "@/lib/http/rate";
+import { enforceIpRateLimit, enforceRateLimit } from "@/lib/http/rate";
 import { createPrayer } from "@/lib/prayers/create";
 import { listVisibleByIds, listWall } from "@/lib/prayers/queries";
 import { publish } from "@/lib/realtime/broker";
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request);
-    enforceRateLimit(`prayer:ip:${getClientIp(request)}`, LIMITS.prayerPerIp);
+    enforceIpRateLimit("prayer:ip", getClientIp(request), LIMITS.prayerPerIp);
 
     const { visitorId, isNew } = getOrCreateVisitorId(request);
     enforceRateLimit(`prayer:visitor:${visitorId}`, LIMITS.prayerPerVisitor);
