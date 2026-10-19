@@ -171,13 +171,13 @@
     "moderation_title": "Content moderation",
     "moderation_body": "The profanity/spam filter is fully local: it runs on our own server against a wordlist, without sending your text to any external AI service or third party. Your prayer never leaves our infrastructure to be \"reviewed\" by anyone else.",
     "sharing_title": "Who we share your data with",
-    "sharing_body": "No one. We don't use analytics, we don't use advertising, there are no third-party trackers on this site. The only external provider is our hosting (Railway), which hosts our database and application — it never accesses your data for its own purposes.",
+    "sharing_body": "With no one. We use no analytics, no advertising and load no third-party trackers. The only external provider is our hosting (Railway), which hosts our database and app and never accesses your data for its own purposes. The one optional exception: if you press \"Support the ministry\", Ko-fi's donation panel (ko-fi.com) opens. Nothing from Ko-fi loads before that click; from then on, that panel is governed by Ko-fi's privacy policy.",
     "deletion_title": "What happens when you delete something",
     "deletion_body": "When you delete an individual prayer request, or delete your account entirely, the record is NOT physically erased from the database: it's archived and anonymized. We remove anything that could identify you (name, visitor cookie, account link), but we keep the prayer text itself, anonymously, with nothing that could trace it back to you, for aggregate research into the Christian community's prayer patterns. An archived request never appears on the wall or anywhere public again.",
     "rights_title": "Your rights",
     "rights_body": "You can delete any of your own requests at any time (we verify it's yours via your session or visitor cookie — we never trust what the request itself claims). You can delete your entire account from your account page, which automatically anonymizes all your requests as described above.",
     "cookies_title": "Cookies",
-    "cookies_body": "We only use first-party, necessary cookies: \"praywall_visitor\" (a random visitor identifier, 1 year, removed when you sign out), session cookies if you have an account, and \"NEXT_LOCALE\" to remember your language. Your browser's local storage also remembers when we last showed you the invitation to create an account, so it isn't repeated; that value is never sent to our server. No advertising or third-party cookies.",
+    "cookies_body": "We only use first-party, necessary cookies: \"praywall_visitor\" (a random visitor identifier, 1 year, removed when you sign out), session cookies if you have an account, and \"NEXT_LOCALE\" to remember your language. Your browser's local storage also remembers when we last showed you the invitation to create an account, so it isn't repeated; that value is never sent to our server. No advertising or third-party cookies. If you open the optional Ko-fi panel, that panel may use its own cookies.",
     "security_title": "Security",
     "security_body": "Hashed passwords, HTTPS, browser security headers (CSP, HSTS), and rate limits to prevent automated abuse.",
     "changes_title": "Changes to this policy",
@@ -190,7 +190,7 @@
     "updated": "Last updated: {date}",
     "intro": "Praywall is a Christian prayer wall, 100% free, non-profit, and maintained by volunteers. By using it, you agree to these simple terms.",
     "service_title": "What this service is",
-    "service_body": "A space to ask for prayer and intercede for others. It's not a commercial service, has no ads or paid plans, and isn't meant to replace professional medical, legal, or pastoral advice.",
+    "service_body": "A place to ask for prayer and to intercede for others. It is not a commercial service, has no ads or paid plans, and is not meant to replace professional medical, legal or pastoral advice. If you wish, you can voluntarily support the ministry's costs through Ko-fi; donations grant no benefit and have nothing to do with the prayers.",
     "conduct_title": "Acceptable use",
     "conduct_body": "Don't post offensive content, spam, or information that identifies or exposes another person without their consent. We run an automatic content filter, but you're ultimately responsible for what you post.",
     "content_title": "Your content",
@@ -246,5 +246,12 @@
     "message": "With a free account you can see who you've prayed for, how many people pray for you, and share how God answered. No email, no ads.",
     "create": "Create account",
     "later": "Not now"
+  },
+  "support": {
+    "button": "Support the ministry",
+    "title": "Support the ministry",
+    "message": "Praywall is free, ad-free and open source. If you'd like, you can help cover hosting. It's entirely optional and has nothing to do with the prayers.",
+    "open_new_tab": "Open Ko-fi in a new tab",
+    "iframe_title": "Ko-fi donation panel"
   }
 }

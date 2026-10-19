@@ -171,13 +171,13 @@
     "moderation_title": "Moderación de contenido",
     "moderation_body": "El filtro de groserías y spam es completamente local: corre en nuestro propio servidor con una lista de palabras, sin enviar tu texto a ningún servicio externo de inteligencia artificial ni de terceros. Tu oración nunca sale de nuestra infraestructura para ser \"revisada\" por nadie más.",
     "sharing_title": "Con quién compartimos tus datos",
-    "sharing_body": "Con nadie. No usamos analítica, no usamos publicidad, no hay rastreadores de terceros en este sitio. El único proveedor externo es el hosting (Railway) que aloja nuestra base de datos y aplicación — nunca accede a tus datos para ningún fin propio.",
+    "sharing_body": "Con nadie. No usamos analítica, no usamos publicidad y no cargamos rastreadores de terceros. El único proveedor externo es el hosting (Railway), que aloja nuestra base de datos y la aplicación y nunca accede a tus datos para ningún fin propio. La única excepción es voluntaria: si pulsas «Apoyar el ministerio», se abre el panel de donación de Ko-fi (ko-fi.com). Antes de ese clic no se carga nada de Ko-fi; a partir de ahí, ese panel se rige por la política de privacidad de Ko-fi.",
     "deletion_title": "Qué pasa cuando eliminas algo",
     "deletion_body": "Cuando eliminas una petición individual, o eliminas tu cuenta por completo, el registro NO se borra físicamente de la base de datos: se archiva y se anonimiza. Eliminamos todo lo que pueda identificarte (nombre, cookie de visitante, vínculo a tu cuenta), pero conservamos el texto de la oración de forma anónima, sin ningún dato que permita rastrearla hasta ti, para un estudio agregado sobre los patrones de oración de la comunidad cristiana. Una petición archivada nunca vuelve a mostrarse en el muro ni en ningún lugar público.",
     "rights_title": "Tus derechos",
     "rights_body": "Puedes eliminar cualquier petición tuya en cualquier momento (verificamos que sea tuya por tu sesión o tu cookie de visitante, nunca confiamos en lo que diga el propio pedido). Puedes eliminar tu cuenta completa desde tu página de cuenta, lo cual anonimiza automáticamente todas tus peticiones según se explica arriba.",
     "cookies_title": "Cookies",
-    "cookies_body": "Solo usamos cookies propias y necesarias: \"praywall_visitor\" (identificador aleatorio de visitante, 1 año, se borra al cerrar sesión), las cookies de sesión si tienes cuenta y \"NEXT_LOCALE\" para recordar tu idioma. Además, tu navegador guarda en su almacenamiento local cuándo te mostramos la invitación a crear una cuenta, para no repetirla; ese dato nunca se envía a nuestro servidor. Ninguna cookie de publicidad ni de terceros.",
+    "cookies_body": "Solo usamos cookies propias y necesarias: \"praywall_visitor\" (identificador aleatorio de visitante, 1 año, se borra al cerrar sesión), las cookies de sesión si tienes cuenta y \"NEXT_LOCALE\" para recordar tu idioma. Además, tu navegador guarda en su almacenamiento local cuándo te mostramos la invitación a crear una cuenta, para no repetirla; ese dato nunca se envía a nuestro servidor. Ninguna cookie de publicidad ni de terceros. Si abres el panel opcional de Ko-fi, ese panel puede usar sus propias cookies.",
     "security_title": "Seguridad",
     "security_body": "Contraseñas cifradas, conexión HTTPS, cabeceras de seguridad del navegador (CSP, HSTS) y límites de frecuencia para prevenir abuso automatizado.",
     "changes_title": "Cambios a esta política",
@@ -190,7 +190,7 @@
     "updated": "Última actualización: {date}",
     "intro": "Praywall es un muro de oración cristiano, 100% gratuito, sin fines de lucro y mantenido por voluntarios. Al usarlo, aceptas estos términos simples.",
     "service_title": "Qué es este servicio",
-    "service_body": "Un espacio para pedir oración e interceder por otros. No es un servicio comercial, no tiene publicidad ni planes de pago, y no pretende sustituir consejo médico, legal ni pastoral profesional.",
+    "service_body": "Un espacio para pedir oración e interceder por otros. No es un servicio comercial, no tiene publicidad ni planes de pago, y no pretende sustituir consejo médico, legal ni pastoral profesional. Si lo deseas, puedes apoyar los costos del ministerio de forma voluntaria a través de Ko-fi; las donaciones no dan ningún beneficio ni tienen relación alguna con las oraciones.",
     "conduct_title": "Uso aceptable",
     "conduct_body": "No publiques contenido ofensivo, spam, ni información que identifique o exponga a otra persona sin su consentimiento. Aplicamos un filtro automático de contenido, pero la responsabilidad final de lo que publicas es tuya.",
     "content_title": "Tu contenido",
@@ -246,5 +246,12 @@
     "message": "Con una cuenta gratuita ves por quién has orado, cuántas personas oran por ti y puedes compartir cómo Dios respondió. Sin correo y sin anuncios.",
     "create": "Crear cuenta",
     "later": "Ahora no"
+  },
+  "support": {
+    "button": "Apoyar el ministerio",
+    "title": "Apoyar el ministerio",
+    "message": "Unos Por Otros es gratis, sin anuncios y de código abierto. Si quieres, puedes ayudar a cubrir el hosting. Es voluntario y no tiene ninguna relación con las oraciones.",
+    "open_new_tab": "Abrir Ko-fi en otra pestaña",
+    "iframe_title": "Panel de donación de Ko-fi"
   }
 }

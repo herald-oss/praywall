@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { PraySuccessProvider } from "@/components/pray-success-provider";
+import { SupportButton } from "@/components/support-button";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -77,6 +78,7 @@ export default async function LocaleLayout({
               <Navbar />
               {children}
               <Footer />
+              <SupportButton />
             </PraySuccessProvider>
             <Toaster
               position="bottom-center"

@@ -8,7 +8,7 @@ const isDev = process.env.NODE_ENV !== "production";
 const ContentSecurityPolicy = [
   "default-src 'self'",
   // Next.js App Router injects inline bootstrap/streaming scripts without a
-  // nonce, and there are no third-party scripts in this app. 'unsafe-eval'
+  // nonce. There are no third-party scripts in this app. 'unsafe-eval'
   // is only added in dev — the HMR/react-refresh runtime uses eval() to apply
   // hot updates. Production doesn't need it.
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
@@ -17,6 +17,8 @@ const ContentSecurityPolicy = [
   "img-src 'self' data:",
   "font-src 'self'",
   "connect-src 'self'", // same-origin fetch + SSE
+  // Ko-fi's donation panel, loaded only when someone opens "Support".
+  "frame-src https://ko-fi.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
