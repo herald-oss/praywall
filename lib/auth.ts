@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/lib/db";
 import { archivePrayersOwnedByUser } from "@/lib/prayers/archive";
+import { publish } from "@/lib/realtime/broker";
 import { PASSWORD_MAX_CHARS, PASSWORD_MIN_CHARS } from "@/lib/constants";
 import { getTrustedOrigins } from "@/lib/http/origin";
 import { trustedIpHeaders } from "@/lib/http/client-ip";
@@ -57,7 +58,8 @@ export const auth = betterAuth({
       // try/catch upstream) — if this throws, the account is NOT deleted,
       // so we never lose the archive trail.
       beforeDelete: async (user) => {
-        await archivePrayersOwnedByUser(user.id);
+        const archived = await archivePrayersOwnedByUser(user.id);
+        for (const id of archived) publish({ type: "removed", id });
       },
     },
   },

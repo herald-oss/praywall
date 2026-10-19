@@ -11,6 +11,7 @@ import { assertSameOrigin } from "@/lib/http/origin";
 import { enforceRateLimit } from "@/lib/http/rate";
 import { moderateText } from "@/lib/moderation";
 import { archivePrayer } from "@/lib/prayers/archive";
+import { publish } from "@/lib/realtime/broker";
 import { isOwner, toPublicPrayer, type Requester } from "@/lib/prayers/serialize";
 import { getRequester } from "@/lib/requester";
 import { isUuid, parseInput, testimonySchema } from "@/lib/validation";
@@ -52,6 +53,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     await loadOwnedPrayer(id, requester);
     const affected = await archivePrayer(id);
     if (affected === 0) throw notFound(); // archived meanwhile
+    publish({ type: "removed", id });
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

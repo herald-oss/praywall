@@ -57,8 +57,12 @@ export function PrayerCard({
   allowTestimony?: boolean;
 }) {
   const t = useTranslations();
-  const [count, setCount] = useState(prayer.intercessorCount ?? 0);
-  const [hasPrayed, setHasPrayed] = useState(prayer.viewerHasPrayed);
+  // Props carry live updates (SSE); local state only remembers what this
+  // card itself just did. Counts only ever grow, so the max is always right.
+  const [localCount, setLocalCount] = useState(0);
+  const [prayedHere, setPrayedHere] = useState(false);
+  const count = Math.max(prayer.intercessorCount ?? 0, localCount);
+  const hasPrayed = prayer.viewerHasPrayed || prayedHere;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPraySuccess, setShowPraySuccess] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -86,9 +90,9 @@ export function PrayerCard({
         alreadyPrayed: boolean;
         ownPrayer: boolean;
       };
-      setCount(data.count);
+      setLocalCount(data.count);
       if (data.ownPrayer) return;
-      setHasPrayed(true);
+      setPrayedHere(true);
       if (data.alreadyPrayed) {
         toast(t("wall.already_prayed"));
       } else {

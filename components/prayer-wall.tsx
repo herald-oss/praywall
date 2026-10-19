@@ -1,11 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useState } from "react";
 import { PrayerCard } from "./prayer-card";
-import { useEffect, useState, useCallback } from "react";
+import { usePrayerStream } from "@/hooks/use-prayer-stream";
 import type { PublicPrayer } from "@/lib/prayers/serialize";
 
-export function PrayerWall() {
+// Live prepends would otherwise grow the list forever on a screen left open
+// all day (e.g. a church lobby display).
+const MAX_ITEMS = 100;
+
+export function PrayerWall({ excludeId }: { excludeId?: string | null }) {
   const t = useTranslations("wall");
   const [prayers, setPrayers] = useState<PublicPrayer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,57 +21,51 @@ export function PrayerWall() {
 
   const fetchPrayers = useCallback(async () => {
     try {
-      const res = await fetch("/api/prayers");
-      if (res.ok) {
-        const data = await res.json();
-        setPrayers(data);
-      }
+      const query = excludeId ? `?exclude=${excludeId}` : "";
+      const res = await fetch(`/api/prayers${query}`);
+      if (res.ok) setPrayers(await res.json());
+    } catch {
+      // keep what we have; the stream will resync later
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [excludeId]);
 
   useEffect(() => {
+    // Initial load from an external source (the API).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPrayers();
   }, [fetchPrayers]);
 
-  // SSE for real-time updates
-  useEffect(() => {
-    const eventSource = new EventSource("/api/prayers/stream");
-
-    eventSource.onmessage = (event) => {
-      try {
-        const newPrayer = JSON.parse(event.data) as PublicPrayer;
-        setPrayers((prev) => {
-          // Update existing prayer or prepend new one. The SSE broadcast is
-          // always anonymized (canManage:false) — never let it downgrade a
-          // card we already know is ours from an authoritative source
-          // (the initial GET or our own POST response).
-          const existing = prev.find((p) => p.id === newPrayer.id);
-          if (existing) {
-            const merged = {
-              ...newPrayer,
-              canManage: existing.canManage || newPrayer.canManage,
-            };
-            return prev.map((p) => (p.id === newPrayer.id ? merged : p));
-          }
-          return [newPrayer, ...prev];
-        });
-      } catch {
-        // ignore parse errors
-      }
-    };
-
-    eventSource.onerror = () => {
-      eventSource.close();
-      // Reconnect after 5s
-      setTimeout(() => {
-        fetchPrayers();
-      }, 5000);
-    };
-
-    return () => eventSource.close();
-  }, [fetchPrayers]);
+  usePrayerStream({
+    onPrayer: (prayer) => {
+      if (prayer.id === excludeId) return;
+      setPrayers((prev) => {
+        const existing = prev.find((p) => p.id === prayer.id);
+        if (existing) {
+          // The broadcast is anonymized — never let it downgrade what we
+          // already know about our own card.
+          return prev.map((p) =>
+            p.id === prayer.id
+              ? { ...prayer, canManage: p.canManage, viewerHasPrayed: p.viewerHasPrayed, testimony: p.testimony }
+              : p
+          );
+        }
+        return [prayer, ...prev].slice(0, MAX_ITEMS);
+      });
+    },
+    onCount: ({ id, intercessorCount, goalReached }) => {
+      setPrayers((prev) =>
+        prev.map((p) =>
+          p.id === id
+            ? { ...p, intercessorCount: Math.max(p.intercessorCount, intercessorCount), goalReached }
+            : p
+        )
+      );
+    },
+    onRemoved: handleDeleted,
+    onResync: fetchPrayers,
+  });
 
   if (loading) {
     return (

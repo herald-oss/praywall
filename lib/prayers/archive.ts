@@ -34,7 +34,7 @@ export async function archivePrayer(id: string): Promise<number> {
  */
 export async function archivePrayersOwnedByUser(
   userId: string
-): Promise<number> {
+): Promise<string[]> {
   const rows = await db
     .update(prayers)
     .set({
@@ -45,5 +45,5 @@ export async function archivePrayersOwnedByUser(
     })
     .where(and(eq(prayers.userId, userId), isNull(prayers.archivedAt)))
     .returning({ id: prayers.id });
-  return rows.length;
+  return rows.map((r) => r.id);
 }

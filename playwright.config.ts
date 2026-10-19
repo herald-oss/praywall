@@ -39,6 +39,10 @@ export default defineConfig({
       // A second production domain, to prove multi-domain origins work.
       BETTER_AUTH_TRUSTED_ORIGINS: "https://unosporotros.test",
       TRUSTED_IP_HEADER: "x-real-ip",
+      // Short stream lifetime so E2E proves the client reconnects (production
+      // default is 14 minutes), and fast count flushes.
+      SSE_MAX_LIFETIME_MS: "8000",
+      SSE_COUNT_FLUSH_MS: "300",
     },
   },
 });

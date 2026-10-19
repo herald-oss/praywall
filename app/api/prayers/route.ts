@@ -7,11 +7,11 @@ import { assertSameOrigin } from "@/lib/http/origin";
 import { enforceRateLimit } from "@/lib/http/rate";
 import { createPrayer } from "@/lib/prayers/create";
 import { listWall } from "@/lib/prayers/queries";
+import { publish } from "@/lib/realtime/broker";
 import { toPublicPrayer, toPublicPrayers } from "@/lib/prayers/serialize";
 import { getRequester } from "@/lib/requester";
 import { createPrayerSchema, isUuid, parseInput } from "@/lib/validation";
 import { getOrCreateVisitorId, setVisitorCookie } from "@/lib/visitor";
-import { notifySSEClients } from "../prayers/stream/route";
 
 export async function GET(request: NextRequest) {
   try {
@@ -52,9 +52,10 @@ export async function POST(request: NextRequest) {
     // Broadcast only genuinely new prayers, anonymized for every listener
     // (canManage false) — the author's own flags only go in this response.
     if (!isDuplicate) {
-      notifySSEClients(
-        toPublicPrayer({ ...row, userName: null }, { userId: null, visitorId: null })
-      );
+      publish({
+        type: "prayer",
+        prayer: toPublicPrayer({ ...row, userName: null }, { userId: null, visitorId: null }),
+      });
     }
 
     const response = NextResponse.json(

@@ -6,6 +6,7 @@ import { errorResponse, HttpError } from "@/lib/http/errors";
 import { assertSameOrigin } from "@/lib/http/origin";
 import { enforceRateLimit } from "@/lib/http/rate";
 import { intercede } from "@/lib/prayers/intercede";
+import { publish } from "@/lib/realtime/broker";
 import { getRequester } from "@/lib/requester";
 import { intercedeSchema, parseInput } from "@/lib/validation";
 import { getOrCreateVisitorId, setVisitorCookie } from "@/lib/visitor";
@@ -27,6 +28,14 @@ export async function POST(request: NextRequest) {
 
     const result = await intercede({ prayerId, visitorId, userId: requester.userId });
     if (result.status === "not_found") throw new HttpError(404, "not_found");
+    if (result.status === "prayed") {
+      publish({
+        type: "count",
+        id: prayerId,
+        intercessorCount: result.count,
+        goalReached: result.goalReached,
+      });
+    }
 
     const response = NextResponse.json({
       count: result.count,
