@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ViewTransition } from "react";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -76,7 +77,8 @@ export default async function LocaleLayout({
           <NextIntlClientProvider>
             <PraySuccessProvider>
               <Navbar />
-              {children}
+              {/* Page-to-page fade (see ::view-transition rules in globals.css). */}
+              <ViewTransition>{children}</ViewTransition>
               <Footer />
               <SupportButton />
             </PraySuccessProvider>

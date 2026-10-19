@@ -45,9 +45,6 @@ const nextConfig: NextConfig = {
   // npm wrapper process and only the traced dependencies on disk.
   output: "standalone",
   poweredByHeader: false,
-  experimental: {
-    viewTransition: true,
-  },
   async headers() {
     // Applies to every route including /api/* and the SSE stream — the
     // next-intl proxy excludes /api from its matcher, so this is the only
