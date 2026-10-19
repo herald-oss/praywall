@@ -39,6 +39,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Minimal self-contained server (`node .next/standalone/server.js`): no
+  // npm wrapper process and only the traced dependencies on disk.
+  output: "standalone",
+  poweredByHeader: false,
   experimental: {
     viewTransition: true,
   },

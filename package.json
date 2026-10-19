@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "npm run db:migrate && next start",
+    "build": "next build && node scripts/copy-standalone-assets.mjs",
+    "start": "node --max-old-space-size=256 .next/standalone/server.js",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "npm run test:unit && npm run test:e2e",
@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:migrate:prod": "node scripts/migrate.mjs",
     "db:studio": "drizzle-kit studio",
     "db:seed": "npx tsx scripts/seed.ts"
   },

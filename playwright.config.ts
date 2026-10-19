@@ -25,7 +25,9 @@ export default defineConfig({
   webServer: {
     command:
       process.env.PW_SERVER_CMD ??
-      `npm run db:migrate && npm run build && npx next start -p ${PORT}`,
+      // Same path as production: migrate with the prod runner, then the
+      // standalone server.
+      `node scripts/migrate.mjs && npm run build && node .next/standalone/server.js`,
     url: `${baseURL}/es`,
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,
@@ -36,6 +38,7 @@ export default defineConfig({
       BETTER_AUTH_URL: baseURL,
       NEXT_PUBLIC_APP_URL: baseURL,
       PORT: String(PORT),
+      HOSTNAME: "0.0.0.0",
       // A second production domain, to prove multi-domain origins work.
       BETTER_AUTH_TRUSTED_ORIGINS: "https://unosporotros.test",
       TRUSTED_IP_HEADER: "x-real-ip",
