@@ -3,14 +3,13 @@ export const dynamic = "force-dynamic";
 import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { PrayerWall } from "@/components/prayer-wall";
-import { PrayerCard } from "@/components/prayer-card";
-import Link from "next/link";
-import { db } from "@/lib/db";
-import { prayers, user } from "@/lib/db/schema";
-import { and, asc, eq, isNull } from "drizzle-orm";
-import { cookies, headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { FeaturedPrayer } from "@/components/featured-prayer";
+import { LivePrayersProvider } from "@/components/live-prayers";
+import { Link } from "@/i18n/navigation";
+import { cookies } from "next/headers";
+import { pickFeaturedPrayer } from "@/lib/prayers/queries";
 import { toPublicPrayer, type PublicPrayer } from "@/lib/prayers/serialize";
+import { getRequester } from "@/lib/requester";
 
 export default async function HomePage({
   params,
@@ -20,46 +19,24 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const candidates = await db
-    .select({
-      id: prayers.id,
-      text: prayers.text,
-      displayName: prayers.displayName,
-      userId: prayers.userId,
-      visitorId: prayers.visitorId,
-      isAnonymous: prayers.isAnonymous,
-      category: prayers.category,
-      intercessorCount: prayers.intercessorCount,
-      goalReached: prayers.goalReached,
-      answeredAt: prayers.answeredAt,
-      testimony: prayers.testimony,
-      createdAt: prayers.createdAt,
-      userName: user.name,
-    })
-    .from(prayers)
-    .leftJoin(user, eq(prayers.userId, user.id))
-    .where(and(eq(prayers.intercessorCount, 0), isNull(prayers.archivedAt)))
-    .orderBy(asc(prayers.createdAt))
-    .limit(5);
-
-  let featured: PublicPrayer | null = null;
-  if (candidates.length > 0) {
-    const session = await auth.api.getSession({ headers: await headers() });
-    const visitorId = (await cookies()).get("praywall_visitor")?.value ?? null;
-    const pick = candidates[Math.floor(Math.random() * candidates.length)];
-    featured = toPublicPrayer(pick, {
-      userId: session?.user?.id ?? null,
-      visitorId,
-    });
-  }
+  const featured = await loadFeaturedPrayer();
 
   return <HomeContent featured={featured} />;
+}
+
+// Kept outside the component so the random pick isn't an impure call
+// during render.
+async function loadFeaturedPrayer(): Promise<PublicPrayer | null> {
+  const requester = await getRequester(await cookies());
+  const pick = await pickFeaturedPrayer(requester);
+  return pick ? toPublicPrayer(pick, requester) : null;
 }
 
 function HomeContent({ featured }: { featured: PublicPrayer | null }) {
   const t = useTranslations();
 
   return (
+    <LivePrayersProvider watchIds={featured ? [featured.id] : []}>
     <main className="flex-1 flex flex-col max-w-[1440px] mx-auto w-full px-6">
       {/* Hero — 70vh, split on desktop, stacked on mobile */}
       <section className="min-h-[70vh] flex items-center">
@@ -92,14 +69,7 @@ function HomeContent({ featured }: { featured: PublicPrayer | null }) {
           </div>
 
           {/* Right — Featured prayer */}
-          {featured && (
-            <div>
-              <p className="font-mono text-xs tracking-[0.1em] uppercase text-subtle mb-4">
-                {t("hero.featured_title")}
-              </p>
-              <PrayerCard prayer={featured} />
-            </div>
-          )}
+          {featured && <FeaturedPrayer prayer={featured} />}
         </div>
       </section>
 
@@ -108,8 +78,10 @@ function HomeContent({ featured }: { featured: PublicPrayer | null }) {
 
       {/* Wall */}
       <section className="pb-12">
-        <PrayerWall />
+        {/* The featured prayer is already shown above — don't repeat it. */}
+        <PrayerWall excludeId={featured?.id ?? null} />
       </section>
     </main>
+    </LivePrayersProvider>
   );
 }

@@ -1,76 +1,95 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { PrayerCard } from "./prayer-card";
-import { useEffect, useState, useCallback } from "react";
+import { useLiveState } from "./live-prayers";
 import type { PublicPrayer } from "@/lib/prayers/serialize";
 
-export function PrayerWall() {
+const PAGE_SIZE = 30; // matches WALL_PAGE_SIZE on the server
+// The wall shows at most this many prayers — those that most need prayer
+// (fewest intercessors first). Also bounds memory on screens left open
+// all day (e.g. a church lobby display).
+const MAX_ITEMS = 100;
+
+export function PrayerWall({ excludeId }: { excludeId?: string | null }) {
   const t = useTranslations("wall");
-  const [prayers, setPrayers] = useState<PublicPrayer[]>([]);
+  const live = useLiveState();
+  const [loaded, setLoaded] = useState<PublicPrayer[]>([]);
+  const [deleted, setDeleted] = useState<ReadonlySet<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const resyncKey = live?.resyncKey ?? 0;
+  // How many rows to reload on a resync, so "load more" pages survive it.
+  const loadedCount = useRef(PAGE_SIZE);
+
+  const query = useCallback(
+    (offset: number, limit: number) => {
+      const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+      if (excludeId) params.set("exclude", excludeId);
+      return fetch(`/api/prayers?${params}`).then((res) =>
+        res.ok ? (res.json() as Promise<PublicPrayer[]>) : null
+      );
+    },
+    [excludeId]
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    const limit = Math.max(PAGE_SIZE, Math.min(loadedCount.current, MAX_ITEMS));
+    query(0, limit)
+      .then((data) => {
+        if (cancelled || !data) return;
+        setLoaded(data);
+        setHasMore(data.length === limit && data.length < MAX_ITEMS);
+      })
+      .catch(() => {
+        // keep what we have; the stream will trigger another resync
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [query, resyncKey]);
+
+  const loadMore = useCallback(async () => {
+    setLoadingMore(true);
+    try {
+      const data = await query(loaded.length, PAGE_SIZE);
+      if (!data) return;
+      setLoaded((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        const next = [...prev, ...data.filter((p) => !seen.has(p.id))].slice(0, MAX_ITEMS);
+        loadedCount.current = next.length;
+        return next;
+      });
+      setHasMore(data.length === PAGE_SIZE && loaded.length + data.length < MAX_ITEMS);
+    } catch {
+      // the button stays; the user can try again
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [query, loaded.length]);
 
   const handleDeleted = useCallback((id: string) => {
-    setPrayers((prev) => prev.filter((p) => p.id !== id));
+    setDeleted((prev) => new Set(prev).add(id));
   }, []);
 
-  const fetchPrayers = useCallback(async () => {
-    try {
-      const res = await fetch("/api/prayers");
-      if (res.ok) {
-        const data = await res.json();
-        setPrayers(data);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPrayers();
-  }, [fetchPrayers]);
-
-  // SSE for real-time updates
-  useEffect(() => {
-    const eventSource = new EventSource("/api/prayers/stream");
-
-    eventSource.onmessage = (event) => {
-      try {
-        const newPrayer = JSON.parse(event.data) as PublicPrayer;
-        setPrayers((prev) => {
-          // Update existing prayer or prepend new one. The SSE broadcast is
-          // always anonymized (canManage:false) — never let it downgrade a
-          // card we already know is ours from an authoritative source
-          // (the initial GET or our own POST response).
-          const existing = prev.find((p) => p.id === newPrayer.id);
-          if (existing) {
-            const merged = {
-              ...newPrayer,
-              canManage: existing.canManage || newPrayer.canManage,
-            };
-            return prev.map((p) => (p.id === newPrayer.id ? merged : p));
-          }
-          return [newPrayer, ...prev];
-        });
-      } catch {
-        // ignore parse errors
-      }
-    };
-
-    eventSource.onerror = () => {
-      eventSource.close();
-      // Reconnect after 5s
-      setTimeout(() => {
-        fetchPrayers();
-      }, 5000);
-    };
-
-    return () => eventSource.close();
-  }, [fetchPrayers]);
+  const prayers = useMemo(() => {
+    const known = new Set(loaded.map((p) => p.id));
+    const fresh = (live?.incoming ?? []).filter((p) => !known.has(p.id));
+    return [...fresh, ...loaded]
+      .filter((p) => p.id !== excludeId && !deleted.has(p.id) && !live?.removed.has(p.id))
+      .slice(0, MAX_ITEMS);
+  }, [loaded, live, excludeId, deleted]);
 
   if (loading) {
     return (
-      <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
+      <div className="columns-1 sm:columns-2 lg:columns-3 gap-4" aria-busy="true">
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
@@ -91,15 +110,24 @@ export function PrayerWall() {
   }
 
   return (
-    <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 [column-fill:_balance]">
-      {prayers.map((prayer) => (
-        <div
-          key={prayer.id}
-          className="mb-4 break-inside-avoid animate-in fade-in slide-in-from-top-2 duration-500"
-        >
-          <PrayerCard prayer={prayer} onDeleted={handleDeleted} />
+    <>
+      <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 [column-fill:_balance]">
+        {prayers.map((prayer) => (
+          <div
+            key={prayer.id}
+            className="mb-4 break-inside-avoid animate-in fade-in slide-in-from-top-2 duration-500"
+          >
+            <PrayerCard prayer={prayer} onDeleted={handleDeleted} />
+          </div>
+        ))}
+      </div>
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <Button variant="secondary" size="lg" onClick={loadMore} disabled={loadingMore}>
+            {t("load_more")}
+          </Button>
         </div>
-      ))}
-    </div>
+      )}
+    </>
   );
 }

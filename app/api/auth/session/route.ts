@@ -1,34 +1,28 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { user } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { copySetCookies } from "@/lib/auth-cookies";
 
-// Better-Auth's native session endpoint is /api/auth/get-session, not
-// /api/auth/session — this wrapper exists because the client expects
-// /api/auth/session and because `username` isn't a Better-Auth
-// additionalField, so it never comes back from the native endpoint (same
-// reason signup/login re-query it manually instead of trusting the raw
-// Better-Auth response).
+// Better-Auth's native session endpoint is blocked by the allowlist in
+// app/api/auth/[...all]; this is the one the client calls on every page
+// load. asResponse so Better-Auth's refreshed cookies (session expiry
+// extension, 5-minute cookie cache) actually reach the browser.
 export async function GET() {
-  const session = await auth.api.getSession({ headers: await headers() });
-
-  if (!session?.user) {
-    return NextResponse.json({ user: null });
-  }
-
-  const [row] = await db
-    .select({ username: user.username, name: user.name })
-    .from(user)
-    .where(eq(user.id, session.user.id))
-    .limit(1);
-
-  return NextResponse.json({
-    user: {
-      id: session.user.id,
-      username: row?.username ?? "",
-      name: row?.name ?? session.user.name,
-    },
+  const authResponse = await auth.api.getSession({
+    headers: await headers(),
+    asResponse: true,
   });
+  const data = authResponse.ok
+    ? ((await authResponse.json()) as {
+        user?: { id: string; name: string; username?: string | null };
+      } | null)
+    : null;
+
+  const response = NextResponse.json({
+    user: data?.user
+      ? { id: data.user.id, username: data.user.username ?? "", name: data.user.name }
+      : null,
+  });
+  copySetCookies(authResponse, response);
+  return response;
 }

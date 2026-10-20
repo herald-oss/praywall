@@ -1,91 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { intercessions, prayers } from "@/lib/db/schema";
-import { eq, sql } from "drizzle-orm";
-function getVisitorId(request: NextRequest): string {
-  // Use a cookie-based visitor ID for anonymous users
-  const existingId = request.cookies.get("praywall_visitor")?.value;
-  if (existingId) return existingId;
-  return crypto.randomUUID();
-}
+import { LIMITS } from "@/lib/config";
+import { readJson } from "@/lib/http/body";
+import { getClientIp } from "@/lib/http/client-ip";
+import { errorResponse, HttpError } from "@/lib/http/errors";
+import { assertSameOrigin } from "@/lib/http/origin";
+import { enforceIpRateLimit } from "@/lib/http/rate";
+import { intercede } from "@/lib/prayers/intercede";
+import { publish } from "@/lib/realtime/broker";
+import { getRequester } from "@/lib/requester";
+import { intercedeSchema, parseInput } from "@/lib/validation";
+import { getOrCreateVisitorId, setVisitorCookie } from "@/lib/visitor";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { prayerId } = body;
+    assertSameOrigin(request);
+    const { prayerId } = parseInput(intercedeSchema, await readJson(request));
 
-    if (!prayerId) {
-      return NextResponse.json(
-        { error: "prayerId is required" },
-        { status: 400 }
-      );
-    }
+    // The goal of 33 must mean 33 people. Without an account we can't prove
+    // that, so cap what one network can add: a generous per-IP rate (a whole
+    // church may share one Wi-Fi) plus a daily cap per IP per prayer.
+    const ip = getClientIp(request);
+    enforceIpRateLimit("intercede:ip", ip, LIMITS.intercedePerIp);
+    enforceIpRateLimit(`intercede:ip-prayer:${prayerId}`, ip, LIMITS.intercedePerIpPerPrayer);
 
-    const visitorId = getVisitorId(request);
+    const { visitorId, isNew } = getOrCreateVisitorId(request);
+    const requester = await getRequester(request.cookies);
 
-    const [prayer] = await db
-      .select({ archivedAt: prayers.archivedAt })
-      .from(prayers)
-      .where(eq(prayers.id, prayerId))
-      .limit(1);
-
-    if (!prayer || prayer.archivedAt != null) {
-      return NextResponse.json(
-        { error: "Prayer not found" },
-        { status: 404 }
-      );
-    }
-
-    // Insert intercession (unique constraint prevents duplicates)
-    await db.insert(intercessions).values({
-      prayerId,
-      visitorId,
-    });
-
-    // Increment the intercessor count
-    const [updated] = await db
-      .update(prayers)
-      .set({
-        intercessorCount: sql`${prayers.intercessorCount} + 1`,
-        goalReached: sql`${prayers.intercessorCount} + 1 >= 33`,
-      })
-      .where(eq(prayers.id, prayerId))
-      .returning();
-
-    const response = NextResponse.json({
-      count: updated.intercessorCount,
-      goalReached: updated.goalReached,
-    });
-
-    // Set visitor cookie if not present
-    if (!request.cookies.get("praywall_visitor")) {
-      response.cookies.set("praywall_visitor", visitorId, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24 * 365, // 1 year
-        path: "/",
+    const result = await intercede({ prayerId, visitorId, userId: requester.userId });
+    if (result.status === "not_found") throw new HttpError(404, "not_found");
+    if (result.status === "prayed") {
+      publish({
+        type: "count",
+        id: prayerId,
+        intercessorCount: result.count,
+        goalReached: result.goalReached,
       });
     }
 
+    const response = NextResponse.json({
+      count: result.count,
+      goalReached: result.goalReached,
+      alreadyPrayed: result.status === "already",
+      ownPrayer: result.status === "own",
+    });
+    if (isNew) setVisitorCookie(response, visitorId, request);
     return response;
-  } catch (error: unknown) {
-    // Handle unique constraint violation (already prayed)
-    const pgError = error instanceof Error && "cause" in error
-      ? (error.cause as { code?: string })
-      : null;
-
-    if (pgError?.code === "23505") {
-      return NextResponse.json(
-        { error: "You already prayed for this" },
-        { status: 409 }
-      );
-    }
-
-    console.error("Failed to intercede:", error);
-    return NextResponse.json(
-      { error: "Failed to record intercession" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return errorResponse(error, "Failed to record intercession");
   }
 }

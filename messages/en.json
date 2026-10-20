@@ -21,9 +21,18 @@
     "many_praying": "Many people are praying",
     "you_prayed": "You prayed for this",
     "delete": "Delete",
-    "delete_confirm": "Delete this prayer request? It's removed from the wall; the content is kept anonymized for community study.",
+    "delete_confirm": "It's removed from the wall. The text is kept anonymously (no name, no link to you) for community study.",
     "delete_success": "Prayer request deleted.",
-    "delete_error": "Couldn't delete it. Please try again."
+    "delete_error": "Couldn't delete it. Please try again.",
+    "already_prayed": "You already prayed for this request. Thank you!",
+    "your_request": "Your request",
+    "goal_reached": "33+ people have prayed for this request",
+    "share": "Share",
+    "share_text": "Would you pray for this?",
+    "link_copied": "Link copied. Share it with anyone you'd like to pray.",
+    "load_more": "Show more requests",
+    "delete_title": "Delete this request?",
+    "cancel": "Cancel"
   },
   "form": {
     "placeholder": "What do you need prayer for today?",
@@ -66,14 +75,22 @@
     "benefits_title": "Why create an account?",
     "benefit_answered": "Mark your prayers as answered and share your testimony",
     "benefit_history": "See all your prayer requests in one place",
-    "benefit_notifications": "Get notified when someone prays for you",
     "benefit_share": "Share your requests so more people can pray",
-    "error": "Something went wrong. Try again."
+    "error": "Something went wrong. Try again.",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "no_recovery": "Keep it safe: we don't ask for an email, so there's no way to recover your password.",
+    "welcome": "Welcome, {name}!",
+    "signed_in": "Signed in. Good to see you!",
+    "benefit_count": "See how many people have prayed for your requests"
   },
   "success": {
     "title": "Your prayer was posted",
     "message": "Someone will pray for you. You are not alone.",
-    "continue": "Continue"
+    "continue": "Continue",
+    "view": "View my request",
+    "back_wall": "Back to the wall",
+    "share": "Share my request"
   },
   "pray_success": {
     "message_1": "Thank you for praying. Your prayer has power.",
@@ -86,7 +103,7 @@
   "register_page": {
     "title": "Create your account",
     "subtitle": "Do more with your prayers",
-    "no_thanks": "No thanks, don't remind me again",
+    "no_thanks": "Not now",
     "back_home": "Back to home"
   },
   "account": {
@@ -98,7 +115,7 @@
     "cancel": "Cancel",
     "delete_success": "Your account was deleted.",
     "delete_error": "Couldn't delete your account. Check your password and try again.",
-    "tab_info": "Information",
+    "tab_info": "Profile",
     "tab_requests": "Requests",
     "tab_prayed": "Prayers",
     "tab_answered": "Answered",
@@ -113,13 +130,28 @@
     "testimony_placeholder": "Tell how God answered this prayer...",
     "testimony_save": "Save",
     "testimony_success": "Testimony saved.",
-    "testimony_error": "Couldn't save the testimony."
+    "testimony_error": "Couldn't save the testimony.",
+    "profile_title": "Your name",
+    "profile_help": "This is how you appear on requests you post with your name.",
+    "save": "Save",
+    "name_saved": "Name updated.",
+    "password_title": "Change password",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "password_help": "Changing it signs you out on your other devices.",
+    "password_saved": "Password updated.",
+    "danger_title": "Danger zone"
   },
   "common": {
     "app_name": "Praywall",
     "back": "Back",
     "time_ago": "{time} ago",
-    "just_now": "just now"
+    "just_now": "just now",
+    "close": "Close",
+    "theme_light": "Switch to light mode",
+    "theme_dark": "Switch to dark mode",
+    "language": "Language",
+    "switch_language": "Switch language to {language}"
   },
   "footer": {
     "tagline": "A free, non-profit, open-source ministry.",
@@ -133,19 +165,19 @@
     "updated": "Last updated: {date}",
     "intro": "Praywall is a free, non-profit ministry. This page explains, in plain language, what data we collect, why, and what control you have over it.",
     "collect_title": "What we collect",
-    "collect_body": "The text of your prayer request, an optional name (or \"Anonymous\" if you choose that), and the category you pick. If you don't have an account, we store a technical cookie (\"praywall_visitor\") for 1 year to recognize you as a visitor and let you delete your own requests. If you create an account: your username, display name, and password (hashed, never stored in plain text). We don't ask for or store a real email — signup uses an internal placeholder email that never leaves our systems. If you have an account, our authentication provider automatically stores the IP and browser of your login sessions.",
+    "collect_body": "The text of your prayer request, an optional name (or \"Anonymous\", which is the default) and the category you pick. When you visit the site we store a technical cookie (\"praywall_visitor\", 1 year) holding a random identifier: it lets you delete your own requests without an account and keeps the same prayer from being counted twice. It's removed when you sign out. If you create an account: your username, display name, and password (hashed, never stored in plain text). We don't ask for or store a real email — signup uses an internal placeholder email that never leaves our systems. If you have an account, our authentication system stores the IP and browser of your login sessions. To limit abuse we use your IP briefly, in memory only, without storing it.",
     "why_title": "Why we collect it",
     "why_body": "Only to run the wall: show prayer requests, count how many people prayed, prevent duplicate posts or spam (via a content filter that runs 100% on our own server, see below), and to let you identify and delete your own requests.",
     "moderation_title": "Content moderation",
     "moderation_body": "The profanity/spam filter is fully local: it runs on our own server against a wordlist, without sending your text to any external AI service or third party. Your prayer never leaves our infrastructure to be \"reviewed\" by anyone else.",
     "sharing_title": "Who we share your data with",
-    "sharing_body": "No one. We don't use analytics, we don't use advertising, there are no third-party trackers on this site. The only external provider is our hosting (Railway), which hosts our database and application — it never accesses your data for its own purposes.",
+    "sharing_body": "With no one. We use no analytics, no advertising and load no third-party trackers. The only external provider is our hosting (Railway), which hosts our database and app and never accesses your data for its own purposes. The one optional exception: if you press \"Support the ministry\", Ko-fi's donation panel (ko-fi.com) opens. Nothing from Ko-fi loads before that click; from then on, that panel is governed by Ko-fi's privacy policy.",
     "deletion_title": "What happens when you delete something",
     "deletion_body": "When you delete an individual prayer request, or delete your account entirely, the record is NOT physically erased from the database: it's archived and anonymized. We remove anything that could identify you (name, visitor cookie, account link), but we keep the prayer text itself, anonymously, with nothing that could trace it back to you, for aggregate research into the Christian community's prayer patterns. An archived request never appears on the wall or anywhere public again.",
     "rights_title": "Your rights",
     "rights_body": "You can delete any of your own requests at any time (we verify it's yours via your session or visitor cookie — we never trust what the request itself claims). You can delete your entire account from your account page, which automatically anonymizes all your requests as described above.",
     "cookies_title": "Cookies",
-    "cookies_body": "We use a single first-party cookie (\"praywall_visitor\", technical, non-tracking, lasts 1 year) and, if you have an account, a session cookie to keep you signed in. No advertising or third-party cookies.",
+    "cookies_body": "We only use first-party, necessary cookies: \"praywall_visitor\" (a random visitor identifier, 1 year, removed when you sign out), session cookies if you have an account, and \"NEXT_LOCALE\" to remember your language. Your browser's local storage also remembers when we last showed you the invitation to create an account, so it isn't repeated; that value is never sent to our server. No advertising or third-party cookies. If you open the optional Ko-fi panel, that panel may use its own cookies.",
     "security_title": "Security",
     "security_body": "Hashed passwords, HTTPS, browser security headers (CSP, HSTS), and rate limits to prevent automated abuse.",
     "changes_title": "Changes to this policy",
@@ -158,7 +190,7 @@
     "updated": "Last updated: {date}",
     "intro": "Praywall is a Christian prayer wall, 100% free, non-profit, and maintained by volunteers. By using it, you agree to these simple terms.",
     "service_title": "What this service is",
-    "service_body": "A space to ask for prayer and intercede for others. It's not a commercial service, has no ads or paid plans, and isn't meant to replace professional medical, legal, or pastoral advice.",
+    "service_body": "A place to ask for prayer and to intercede for others. It is not a commercial service, has no ads or paid plans, and is not meant to replace professional medical, legal or pastoral advice. If you wish, you can voluntarily support the ministry's costs through Ko-fi; donations grant no benefit and have nothing to do with the prayers.",
     "conduct_title": "Acceptable use",
     "conduct_body": "Don't post offensive content, spam, or information that identifies or exposes another person without their consent. We run an automatic content filter, but you're ultimately responsible for what you post.",
     "content_title": "Your content",
@@ -171,5 +203,55 @@
     "openSource_body": "Praywall is open-source software, published by Herald-OSS. You can review, audit, or contribute to the code in our repository.",
     "changes_title": "Changes to these terms",
     "changes_body": "We may update these terms occasionally; significant changes will be reflected with a new date on this page."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "You're offline. Check your connection and try again.",
+    "invalid_credentials": "Incorrect username or password.",
+    "invalid_password": "That password isn't correct.",
+    "username_taken": "That username is already taken.",
+    "name_required": "Please enter your name.",
+    "rate_limit": "Too many attempts. Please wait a moment and try again.",
+    "inappropriate_content": "It contains inappropriate language. Please edit it.",
+    "spam": "It looks like spam (links or repeated text). Remove it and try again.",
+    "too_long": "It's too long.",
+    "empty": "It can't be empty.",
+    "invalid_input": "Please check what you entered and try again.",
+    "not_found": "This prayer request is no longer available.",
+    "sign_out_failed": "Couldn't sign out. Please try again.",
+    "password_too_short": "Your password must have at least 8 characters.",
+    "password_too_long": "Your password is too long."
+  },
+  "meta": {
+    "site_name": "Praywall",
+    "title": "Praywall — Prayer Wall",
+    "description": "A real-time prayer wall. Ask for prayer anonymously and at least 33 people will pray for you. Free, ad-free and open source."
+  },
+  "not_found": {
+    "title": "Page not found",
+    "message": "This page doesn't exist or the prayer request is no longer available.",
+    "home": "Back to the wall"
+  },
+  "error_page": {
+    "title": "Something went wrong",
+    "message": "We had trouble loading this page. Please try again in a moment.",
+    "retry": "Try again",
+    "home": "Back to the wall"
+  },
+  "prayer_page": {
+    "title": "Prayer request"
+  },
+  "invite": {
+    "title": "Keep your prayer journey",
+    "message": "With a free account you can see who you've prayed for, how many people pray for you, and share how God answered. No email, no ads.",
+    "create": "Create account",
+    "later": "Not now"
+  },
+  "support": {
+    "button": "Support the ministry",
+    "title": "Support the ministry",
+    "message": "Praywall is free, ad-free and open source. If you'd like, you can help cover hosting. It's entirely optional and has nothing to do with the prayers.",
+    "open_new_tab": "Open Ko-fi in a new tab",
+    "iframe_title": "Ko-fi donation panel"
   }
 }

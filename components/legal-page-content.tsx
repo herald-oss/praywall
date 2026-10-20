@@ -4,7 +4,7 @@ import { useTranslations, useLocale } from "next-intl";
 
 // Fixed publish date — update this when the copy actually changes, not on
 // every page load.
-const LAST_UPDATED_ISO = "2026-07-08";
+const LAST_UPDATED_ISO = "2026-10-19";
 
 const SECTION_KEYS: Record<"privacy" | "terms", string[]> = {
   privacy: [
@@ -37,7 +37,8 @@ export function LegalPageContent({
 }) {
   const t = useTranslations(namespace);
   const locale = useLocale();
-  const updated = new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(
+  // UTC so the server and every visitor's browser print the same day.
+  const updated = new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" }).format(
     new Date(LAST_UPDATED_ISO)
   );
 

@@ -8,16 +8,17 @@ const isDev = process.env.NODE_ENV !== "production";
 const ContentSecurityPolicy = [
   "default-src 'self'",
   // Next.js App Router injects inline bootstrap/streaming scripts without a
-  // nonce, and there are no third-party scripts in this app. 'unsafe-eval'
-  // is only added in dev — webpack's HMR/react-refresh runtime uses eval()
-  // to apply hot updates; without it the entire client bundle throws on
-  // load and the app never hydrates. Production doesn't need it.
+  // nonce. There are no third-party scripts in this app. 'unsafe-eval'
+  // is only added in dev — the HMR/react-refresh runtime uses eval() to apply
+  // hot updates. Production doesn't need it.
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   // Tailwind/shadcn/next-themes rely on inline style attributes.
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
   "connect-src 'self'", // same-origin fetch + SSE
+  // Ko-fi's donation panel, loaded only when someone opens "Support".
+  "frame-src https://ko-fi.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -40,21 +41,15 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  experimental: {
-    viewTransition: true,
-  },
+  // Minimal self-contained server (`node .next/standalone/server.js`): no
+  // npm wrapper process and only the traced dependencies on disk.
+  output: "standalone",
+  poweredByHeader: false,
   async headers() {
     // Applies to every route including /api/* and the SSE stream — the
-    // next-intl middleware excludes /api from its matcher, so this is the
-    // only place these headers get applied there.
+    // next-intl proxy excludes /api from its matcher, so this is the only
+    // place these headers get applied there.
     return [{ source: "/:path*", headers: securityHeaders }];
-  },
-  webpack: (config) => {
-    config.watchOptions = {
-      poll: 1000,
-      aggregateTimeout: 300,
-    };
-    return config;
   },
 };
 

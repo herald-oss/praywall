@@ -5,7 +5,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { AuthDialog } from "@/components/auth-dialog";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import toast from "react-hot-toast";
 
 export function UserNav() {
   const t = useTranslations();
@@ -19,9 +20,10 @@ export function UserNav() {
       <div className="flex items-center gap-2">
         <Link
           href="/account"
-          className="flex items-center gap-2 rounded-lg transition-colors duration-300 hover:text-foreground"
+          aria-label={`${t("account.title")} (@${user.username})`}
+          className="flex items-center gap-2 min-h-[44px] rounded-lg transition-colors duration-300 hover:text-foreground"
         >
-          <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-mono font-semibold">
+          <div aria-hidden className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-mono font-semibold">
             {user.name.charAt(0).toUpperCase()}
           </div>
           <span className="font-mono text-xs tracking-[0.1em] text-subtle hidden sm:inline">
@@ -29,7 +31,13 @@ export function UserNav() {
           </span>
         </Link>
         <button
-          onClick={() => signOut()}
+          onClick={() =>
+            signOut()
+              // Start clean: nothing of the previous person stays on screen
+              // (important on shared devices).
+              .then(() => window.location.reload())
+              .catch(() => toast.error(t("errors.sign_out_failed")))
+          }
           className="h-10 w-10 rounded-lg border border-border flex items-center justify-center text-subtle hover:text-foreground hover:border-muted-foreground/30 transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           aria-label={t("auth.sign_out")}
         >
@@ -43,14 +51,15 @@ export function UserNav() {
     <>
       <div className="flex items-center gap-3">
         <button
+          type="button"
           onClick={() => setAuthOpen(true)}
-          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300"
+          className="min-h-[44px] px-1 whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300"
         >
           {t("auth.sign_in")}
         </button>
         <Link
           href="/register"
-          className="text-sm font-medium text-primary hover:text-primary/80 transition-colors duration-300"
+          className="hidden sm:inline-flex min-h-[44px] items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors duration-300"
         >
           {t("auth.create_account")}
         </Link>
