@@ -50,6 +50,13 @@ test("personal pages are not indexable", async ({ browser }) => {
   expect(robots).toContain("Disallow: /es/prayer/");
 });
 
+test("crawlers are turned away, link previews are not", async ({ request }) => {
+  const robots = await (await request.get("/robots.txt")).text();
+  expect(robots).toMatch(/User-Agent: \*\nDisallow: \/\s*$/);
+  expect(robots).toContain("User-Agent: facebookexternalhit");
+  expect(robots).not.toContain("Sitemap:");
+});
+
 test("the manifest and its icons exist", async ({ request }) => {
   const manifest = await (await request.get("/manifest.webmanifest")).json();
   for (const icon of manifest.icons) {
